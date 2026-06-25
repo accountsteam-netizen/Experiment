@@ -12,13 +12,6 @@
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 
 <style>
-/* ═══════════════════════════════════════════════════════════════
-   CONFIGURATION — Edit these if you need to change credentials
-   ═══════════════════════════════════════════════════════════════ */
-
-/* ═══════════════════════════════════════════════════════════════
-   THEME VARIABLES — Dark mode (default) + Light mode
-   ═══════════════════════════════════════════════════════════════ */
 :root {
   --bg-primary: #0a0a0f;
   --bg-secondary: #0f0f18;
@@ -26,49 +19,38 @@
   --bg-card: #0d0d14;
   --bg-elevated: #1a1a26;
   --bg-hover: rgba(255,255,255,0.03);
-
   --border-subtle: rgba(255,255,255,0.06);
   --border-default: rgba(255,255,255,0.1);
   --border-strong: rgba(255,255,255,0.18);
-
   --text-primary: #ffffff;
   --text-secondary: rgba(255,255,255,0.6);
   --text-tertiary: rgba(255,255,255,0.35);
   --text-muted: rgba(255,255,255,0.2);
-
   --brand-red: #FE2B32;
   --brand-pink: #FF41A5;
   --brand-amber: #FFC533;
   --brand-black: #010000;
-
   --status-success: #00d4aa;
   --status-warning: #FFC533;
   --status-danger: #FE2B32;
   --status-info: #4d9fff;
-
   --glow-red: rgba(254,43,50,0.4);
   --glow-pink: rgba(255,65,165,0.4);
   --glow-amber: rgba(255,197,51,0.4);
   --glow-green: rgba(0,212,170,0.4);
-
   --grid-color: rgba(255,255,255,0.04);
-
   --shadow-soft: 0 4px 24px rgba(0,0,0,0.4);
   --shadow-glow-red: 0 0 40px rgba(254,43,50,0.15);
-
   --radius-sm: 6px;
   --radius-md: 10px;
   --radius-lg: 14px;
   --radius-xl: 20px;
-
   --transition-base: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   --transition-smooth: 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-
   --font-display: 'Syne', sans-serif;
   --font-body: 'DM Sans', sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
 }
-
 [data-theme="light"] {
   --bg-primary: #FAFAF7;
   --bg-secondary: #ffffff;
@@ -76,466 +58,139 @@
   --bg-card: #ffffff;
   --bg-elevated: #FAFAF7;
   --bg-hover: rgba(0,0,0,0.025);
-
   --border-subtle: rgba(0,0,0,0.06);
   --border-default: rgba(0,0,0,0.1);
   --border-strong: rgba(0,0,0,0.18);
-
   --text-primary: #0a0a0f;
   --text-secondary: rgba(10,10,15,0.65);
   --text-tertiary: rgba(10,10,15,0.4);
   --text-muted: rgba(10,10,15,0.25);
-
   --grid-color: rgba(0,0,0,0.04);
-
   --shadow-soft: 0 4px 24px rgba(0,0,0,0.06);
   --shadow-glow-red: 0 8px 32px rgba(254,43,50,0.1);
 }
-
-/* ═══════════════════════════════════════════════════════════════
-   RESET + BASE
-   ═══════════════════════════════════════════════════════════════ */
 * { box-sizing: border-box; margin: 0; padding: 0; }
 *::-webkit-scrollbar { width: 8px; height: 8px; }
 *::-webkit-scrollbar-track { background: transparent; }
 *::-webkit-scrollbar-thumb { background: var(--border-default); border-radius: 4px; }
 *::-webkit-scrollbar-thumb:hover { background: var(--border-strong); }
-
 html, body {
-  background: var(--bg-primary);
-  color: var(--text-primary);
-  font-family: var(--font-body);
-  font-size: 14px;
-  line-height: 1.5;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  background: var(--bg-primary); color: var(--text-primary);
+  font-family: var(--font-body); font-size: 14px; line-height: 1.5;
+  -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
   transition: background var(--transition-base), color var(--transition-base);
   overflow-x: hidden;
 }
-
 button { font-family: inherit; cursor: pointer; border: none; background: none; color: inherit; }
 input, select { font-family: inherit; color: inherit; }
 a { color: inherit; text-decoration: none; }
-
-/* Animated background grid */
 .bg-grid {
   position: fixed; inset: 0; z-index: 0; pointer-events: none;
-  background-image:
-    linear-gradient(var(--grid-color) 1px, transparent 1px),
-    linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
+  background-image: linear-gradient(var(--grid-color) 1px, transparent 1px), linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
   background-size: 48px 48px;
   mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black 30%, transparent 100%);
 }
-
-/* ═══════════════════════════════════════════════════════════════
-   LOGIN SCREEN
-   ═══════════════════════════════════════════════════════════════ */
-#login-screen {
-  position: fixed; inset: 0; z-index: 1000;
-  display: flex; align-items: center; justify-content: center;
-  background: var(--bg-primary);
-  padding: 24px;
-}
-
+#login-screen { position: fixed; inset: 0; z-index: 1000; display: flex; align-items: center; justify-content: center; background: var(--bg-primary); padding: 24px; }
 #login-screen.hidden { display: none; }
-
-.login-bg-glow {
-  position: absolute; inset: 0; pointer-events: none; overflow: hidden;
-}
-.login-bg-glow::before, .login-bg-glow::after {
-  content: ''; position: absolute; border-radius: 50%; filter: blur(80px);
-  animation: floatGlow 12s ease-in-out infinite;
-}
-.login-bg-glow::before {
-  top: 20%; left: 20%; width: 400px; height: 400px;
-  background: radial-gradient(circle, var(--brand-red) 0%, transparent 70%);
-  opacity: 0.15;
-}
-.login-bg-glow::after {
-  bottom: 20%; right: 15%; width: 350px; height: 350px;
-  background: radial-gradient(circle, var(--brand-pink) 0%, transparent 70%);
-  opacity: 0.12;
-  animation-delay: -6s;
-}
-@keyframes floatGlow {
-  0%, 100% { transform: translate(0, 0) scale(1); }
-  50% { transform: translate(40px, -30px) scale(1.1); }
-}
-
-.login-card {
-  position: relative; z-index: 1;
-  background: var(--bg-card);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-xl);
-  padding: 48px 40px;
-  width: 100%; max-width: 420px;
-  box-shadow: var(--shadow-soft);
-  animation: fadeInUp 0.6s var(--transition-smooth);
-}
-@keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-.login-logo {
-  display: flex; align-items: center; gap: 12px; margin-bottom: 32px;
-}
-.login-logo-grid {
-  display: grid; grid-template-columns: 1fr 1fr; gap: 3px;
-  width: 40px; height: 40px;
-}
+.login-bg-glow { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.login-bg-glow::before, .login-bg-glow::after { content: ''; position: absolute; border-radius: 50%; filter: blur(80px); animation: floatGlow 12s ease-in-out infinite; }
+.login-bg-glow::before { top: 20%; left: 20%; width: 400px; height: 400px; background: radial-gradient(circle, var(--brand-red) 0%, transparent 70%); opacity: 0.15; }
+.login-bg-glow::after { bottom: 20%; right: 15%; width: 350px; height: 350px; background: radial-gradient(circle, var(--brand-pink) 0%, transparent 70%); opacity: 0.12; animation-delay: -6s; }
+@keyframes floatGlow { 0%, 100% { transform: translate(0, 0) scale(1); } 50% { transform: translate(40px, -30px) scale(1.1); } }
+.login-card { position: relative; z-index: 1; background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-xl); padding: 48px 40px; width: 100%; max-width: 420px; box-shadow: var(--shadow-soft); animation: fadeInUp 0.6s var(--transition-smooth); }
+@keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+.login-logo { display: flex; align-items: center; gap: 12px; margin-bottom: 32px; }
+.login-logo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 3px; width: 40px; height: 40px; }
 .login-logo-grid > div { border-radius: 4px; }
 .login-logo-grid > div:nth-child(1) { background: var(--brand-red); }
 .login-logo-grid > div:nth-child(2) { background: var(--brand-pink); }
 .login-logo-grid > div:nth-child(3) { background: var(--brand-amber); }
 .login-logo-grid > div:nth-child(4) { background: var(--brand-black); border: 1px solid var(--border-strong); }
 [data-theme="light"] .login-logo-grid > div:nth-child(4) { background: #0a0a0f; border: none; }
-
-.login-brand h1 {
-  font-family: var(--font-display);
-  font-size: 18px; font-weight: 700; letter-spacing: -0.01em;
-  color: var(--text-primary);
-}
-.login-brand p {
-  font-size: 11px; color: var(--text-tertiary); letter-spacing: 0.08em; text-transform: uppercase;
-  margin-top: 2px;
-}
-
-.login-headline {
-  font-family: var(--font-display);
-  font-size: 28px; font-weight: 700;
-  color: var(--text-primary);
-  margin-bottom: 8px; letter-spacing: -0.02em;
-}
-.login-sub {
-  color: var(--text-secondary); font-size: 13px; margin-bottom: 28px;
-}
-
+.login-brand h1 { font-family: var(--font-display); font-size: 18px; font-weight: 700; letter-spacing: -0.01em; color: var(--text-primary); }
+.login-brand p { font-size: 11px; color: var(--text-tertiary); letter-spacing: 0.08em; text-transform: uppercase; margin-top: 2px; }
+.login-headline { font-family: var(--font-display); font-size: 28px; font-weight: 700; color: var(--text-primary); margin-bottom: 8px; letter-spacing: -0.02em; }
+.login-sub { color: var(--text-secondary); font-size: 13px; margin-bottom: 28px; }
 .login-input-wrap { position: relative; margin-bottom: 16px; }
-.login-input {
-  width: 100%;
-  background: var(--bg-elevated);
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-md);
-  padding: 14px 16px;
-  font-size: 14px;
-  color: var(--text-primary);
-  transition: all var(--transition-base);
-  outline: none;
-}
-.login-input:focus {
-  border-color: var(--brand-red);
-  box-shadow: 0 0 0 3px rgba(254,43,50,0.1);
-}
+.login-input { width: 100%; background: var(--bg-elevated); border: 1px solid var(--border-default); border-radius: var(--radius-md); padding: 14px 16px; font-size: 14px; color: var(--text-primary); transition: all var(--transition-base); outline: none; }
+.login-input:focus { border-color: var(--brand-red); box-shadow: 0 0 0 3px rgba(254,43,50,0.1); }
 .login-input::placeholder { color: var(--text-muted); }
-
-.login-btn {
-  width: 100%;
-  background: var(--brand-red);
-  color: #fff;
-  border-radius: var(--radius-md);
-  padding: 14px;
-  font-size: 14px; font-weight: 600;
-  letter-spacing: 0.02em;
-  transition: all var(--transition-base);
-  position: relative; overflow: hidden;
-}
-.login-btn:hover {
-  background: #e8252c;
-  transform: translateY(-1px);
-  box-shadow: 0 8px 24px rgba(254,43,50,0.3);
-}
+.login-btn { width: 100%; background: var(--brand-red); color: #fff; border-radius: var(--radius-md); padding: 14px; font-size: 14px; font-weight: 600; letter-spacing: 0.02em; transition: all var(--transition-base); position: relative; overflow: hidden; }
+.login-btn:hover { background: #e8252c; transform: translateY(-1px); box-shadow: 0 8px 24px rgba(254,43,50,0.3); }
 .login-btn:active { transform: translateY(0); }
 .login-btn:disabled { opacity: 0.6; cursor: not-allowed; }
-
-.login-divider {
-  display: flex; align-items: center; gap: 12px;
-  margin: 24px 0;
-  color: var(--text-tertiary); font-size: 11px;
-  letter-spacing: 0.1em; text-transform: uppercase;
-}
-.login-divider::before, .login-divider::after {
-  content: ''; flex: 1; height: 1px; background: var(--border-subtle);
-}
-
-.google-btn {
-  width: 100%;
-  background: var(--bg-elevated);
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-md);
-  padding: 12px;
-  font-size: 13px; font-weight: 500;
-  color: var(--text-primary);
-  display: flex; align-items: center; justify-content: center; gap: 10px;
-  transition: all var(--transition-base);
-}
-.google-btn:hover {
-  border-color: var(--border-strong);
-  background: var(--bg-hover);
-}
+.login-divider { display: flex; align-items: center; gap: 12px; margin: 24px 0; color: var(--text-tertiary); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; }
+.login-divider::before, .login-divider::after { content: ''; flex: 1; height: 1px; background: var(--border-subtle); }
+.google-btn { width: 100%; background: var(--bg-elevated); border: 1px solid var(--border-default); border-radius: var(--radius-md); padding: 12px; font-size: 13px; font-weight: 500; color: var(--text-primary); display: flex; align-items: center; justify-content: center; gap: 10px; transition: all var(--transition-base); }
+.google-btn:hover { border-color: var(--border-strong); background: var(--bg-hover); }
 .google-btn svg { width: 18px; height: 18px; }
-
-.login-error {
-  background: rgba(254,43,50,0.1);
-  border: 1px solid rgba(254,43,50,0.3);
-  color: var(--brand-red);
-  padding: 10px 14px;
-  border-radius: var(--radius-md);
-  font-size: 12px;
-  margin-bottom: 16px;
-  display: none;
-}
+.login-error { background: rgba(254,43,50,0.1); border: 1px solid rgba(254,43,50,0.3); color: var(--brand-red); padding: 10px 14px; border-radius: var(--radius-md); font-size: 12px; margin-bottom: 16px; display: none; }
 .login-error.show { display: block; animation: shake 0.4s; }
-@keyframes shake {
-  0%, 100% { transform: translateX(0); }
-  25% { transform: translateX(-4px); }
-  75% { transform: translateX(4px); }
-}
-
-.login-footer {
-  margin-top: 24px;
-  text-align: center;
-  font-size: 11px;
-  color: var(--text-tertiary);
-}
-
-/* ═══════════════════════════════════════════════════════════════
-   MAIN APP — Navigation
-   ═══════════════════════════════════════════════════════════════ */
+@keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-4px); } 75% { transform: translateX(4px); } }
+.login-footer { margin-top: 24px; text-align: center; font-size: 11px; color: var(--text-tertiary); }
 #app { display: none; min-height: 100vh; position: relative; z-index: 1; }
 #app.visible { display: block; }
-
-.app-nav {
-  background: var(--bg-secondary);
-  border-bottom: 1px solid var(--border-subtle);
-  padding: 14px 28px;
-  display: flex; align-items: center; gap: 24px;
-  position: sticky; top: 0; z-index: 100;
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-}
-
+.app-nav { background: var(--bg-secondary); border-bottom: 1px solid var(--border-subtle); padding: 14px 28px; display: flex; align-items: center; gap: 24px; position: sticky; top: 0; z-index: 100; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
 .nav-brand { display: flex; align-items: center; gap: 10px; }
-.nav-logo {
-  display: grid; grid-template-columns: 1fr 1fr; gap: 2px;
-  width: 28px; height: 28px;
-}
+.nav-logo { display: grid; grid-template-columns: 1fr 1fr; gap: 2px; width: 28px; height: 28px; }
 .nav-logo > div { border-radius: 3px; }
 .nav-logo > div:nth-child(1) { background: var(--brand-red); }
 .nav-logo > div:nth-child(2) { background: var(--brand-pink); }
 .nav-logo > div:nth-child(3) { background: var(--brand-amber); }
 .nav-logo > div:nth-child(4) { background: var(--text-primary); }
-
-.nav-title {
-  font-family: var(--font-display);
-  font-size: 14px; font-weight: 700; letter-spacing: -0.01em;
-  color: var(--text-primary);
-}
+.nav-title { font-family: var(--font-display); font-size: 14px; font-weight: 700; letter-spacing: -0.01em; color: var(--text-primary); }
 .nav-title span { color: var(--text-tertiary); font-weight: 400; margin-left: 6px; font-size: 11px; letter-spacing: 0.08em; }
-
 .nav-tabs { display: flex; gap: 4px; flex: 1; }
-.nav-tab {
-  font-size: 12px; font-weight: 500;
-  padding: 7px 14px; border-radius: var(--radius-sm);
-  color: var(--text-tertiary);
-  transition: all var(--transition-base);
-  position: relative;
-}
+.nav-tab { font-size: 12px; font-weight: 500; padding: 7px 14px; border-radius: var(--radius-sm); color: var(--text-tertiary); transition: all var(--transition-base); position: relative; }
 .nav-tab:hover { color: var(--text-secondary); background: var(--bg-hover); }
-.nav-tab.active {
-  color: var(--brand-red);
-  background: rgba(254,43,50,0.1);
-}
+.nav-tab.active { color: var(--brand-red); background: rgba(254,43,50,0.1); }
 [data-theme="light"] .nav-tab.active { background: rgba(254,43,50,0.08); }
-
 .nav-actions { display: flex; align-items: center; gap: 8px; }
-
-.nav-status {
-  display: flex; align-items: center; gap: 6px;
-  font-size: 11px; color: var(--text-tertiary);
-  padding: 6px 10px;
-  background: var(--bg-hover);
-  border-radius: var(--radius-sm);
-  font-family: var(--font-mono);
-}
-.nav-status .dot {
-  width: 6px; height: 6px; border-radius: 50%;
-  background: var(--status-success);
-  box-shadow: 0 0 8px var(--status-success);
-  animation: pulse 2s infinite;
-}
-@keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
-}
-
-.icon-btn {
-  width: 32px; height: 32px;
-  border-radius: var(--radius-sm);
-  display: flex; align-items: center; justify-content: center;
-  color: var(--text-secondary);
-  transition: all var(--transition-base);
-}
+.nav-status { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--text-tertiary); padding: 6px 10px; background: var(--bg-hover); border-radius: var(--radius-sm); font-family: var(--font-mono); }
+.nav-status .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--status-success); box-shadow: 0 0 8px var(--status-success); animation: pulse 2s infinite; }
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+.icon-btn { width: 32px; height: 32px; border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; color: var(--text-secondary); transition: all var(--transition-base); }
 .icon-btn:hover { background: var(--bg-hover); color: var(--text-primary); }
+.icon-btn.alert { color: var(--brand-amber); }
 .icon-btn svg { width: 16px; height: 16px; }
-
-/* ═══════════════════════════════════════════════════════════════
-   MAIN CONTENT AREA
-   ═══════════════════════════════════════════════════════════════ */
-.app-main {
-  padding: 28px;
-  max-width: 1600px;
-  margin: 0 auto;
-  position: relative;
-  z-index: 1;
-}
-
+.app-main { padding: 28px; max-width: 1600px; margin: 0 auto; position: relative; z-index: 1; }
 .page { display: none; animation: fadeIn 0.4s var(--transition-smooth); }
 .page.active { display: block; }
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
+@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 .page-header { margin-bottom: 24px; }
-.page-eyebrow {
-  font-family: var(--font-mono);
-  font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase;
-  color: var(--text-tertiary);
-  margin-bottom: 4px;
-}
-.page-title {
-  font-family: var(--font-display);
-  font-size: 28px; font-weight: 700; letter-spacing: -0.02em;
-  color: var(--text-primary);
-}
-.page-desc {
-  color: var(--text-secondary); font-size: 13px; margin-top: 6px;
-}
-
-/* ═══════════════════════════════════════════════════════════════
-   KPI CARDS
-   ═══════════════════════════════════════════════════════════════ */
-.kpi-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 12px;
-  margin-bottom: 20px;
-}
-
-.kpi-card {
-  background: var(--bg-card);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-lg);
-  padding: 18px 20px;
-  position: relative; overflow: hidden;
-  transition: all var(--transition-base);
-  cursor: default;
-}
-.kpi-card::before {
-  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
-  background: var(--brand-red);
-  box-shadow: 0 0 12px var(--glow-red);
-}
+.page-eyebrow { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--text-tertiary); margin-bottom: 4px; }
+.page-title { font-family: var(--font-display); font-size: 28px; font-weight: 700; letter-spacing: -0.02em; color: var(--text-primary); }
+.page-desc { color: var(--text-secondary); font-size: 13px; margin-top: 6px; }
+.kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
+.kpi-card { background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 18px 20px; position: relative; overflow: hidden; transition: all var(--transition-base); cursor: default; }
+.kpi-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: var(--brand-red); box-shadow: 0 0 12px var(--glow-red); }
 .kpi-card[data-color="pink"]::before { background: var(--brand-pink); box-shadow: 0 0 12px var(--glow-pink); }
 .kpi-card[data-color="amber"]::before { background: var(--brand-amber); box-shadow: 0 0 12px var(--glow-amber); }
 .kpi-card[data-color="green"]::before { background: var(--status-success); box-shadow: 0 0 12px var(--glow-green); }
-.kpi-card:hover {
-  transform: translateY(-2px);
-  border-color: var(--border-default);
-}
-
-.kpi-card::after {
-  content: ''; position: absolute; bottom: 0; right: 0;
-  width: 60%; height: 60%;
-  background: radial-gradient(circle at bottom right, var(--glow-red), transparent 70%);
-  opacity: 0; transition: opacity var(--transition-base);
-  pointer-events: none;
-}
+.kpi-card:hover { transform: translateY(-2px); border-color: var(--border-default); }
+.kpi-card::after { content: ''; position: absolute; bottom: 0; right: 0; width: 60%; height: 60%; background: radial-gradient(circle at bottom right, var(--glow-red), transparent 70%); opacity: 0; transition: opacity var(--transition-base); pointer-events: none; }
 .kpi-card:hover::after { opacity: 0.15; }
-
-.kpi-label {
-  font-size: 11px; font-weight: 500;
-  color: var(--text-tertiary);
-  letter-spacing: 0.06em; text-transform: uppercase;
-  margin-bottom: 10px;
-  display: flex; align-items: center; gap: 6px;
-}
-.kpi-value {
-  font-family: var(--font-display);
-  font-size: 26px; font-weight: 700;
-  color: var(--text-primary);
-  letter-spacing: -0.02em;
-  line-height: 1;
-  margin-bottom: 6px;
-}
-.kpi-meta {
-  font-size: 11px; color: var(--text-secondary);
-  display: flex; align-items: center; gap: 4px;
-}
+.kpi-label { font-size: 11px; font-weight: 500; color: var(--text-tertiary); letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+.kpi-value { font-family: var(--font-display); font-size: 26px; font-weight: 700; color: var(--text-primary); letter-spacing: -0.02em; line-height: 1; margin-bottom: 6px; }
+.kpi-meta { font-size: 11px; color: var(--text-secondary); display: flex; align-items: center; gap: 4px; }
 .kpi-meta .up { color: var(--status-success); }
 .kpi-meta .down { color: var(--brand-red); }
 .kpi-meta .neutral { color: var(--text-tertiary); }
-
-/* ═══════════════════════════════════════════════════════════════
-   CHARTS & PANELS
-   ═══════════════════════════════════════════════════════════════ */
-.panel {
-  background: var(--bg-card);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-lg);
-  padding: 20px;
-  transition: border-color var(--transition-base);
-}
+.panel { background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 20px; transition: border-color var(--transition-base); }
 .panel:hover { border-color: var(--border-default); }
-
-.panel-header {
-  display: flex; align-items: center; justify-content: space-between;
-  margin-bottom: 16px;
-}
-.panel-title {
-  font-family: var(--font-display);
-  font-size: 14px; font-weight: 600;
-  color: var(--text-primary);
-  letter-spacing: -0.01em;
-}
-.panel-sub {
-  font-size: 11px; color: var(--text-tertiary);
-  margin-top: 2px;
-}
-
+.panel-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+.panel-title { font-family: var(--font-display); font-size: 14px; font-weight: 600; color: var(--text-primary); letter-spacing: -0.01em; }
+.panel-sub { font-size: 11px; color: var(--text-tertiary); margin-top: 2px; }
 .chart-grid { display: grid; gap: 12px; }
 .chart-grid.cols-2 { grid-template-columns: 1.5fr 1fr; }
 .chart-grid.cols-2-eq { grid-template-columns: 1fr 1fr; }
 .chart-grid.cols-3 { grid-template-columns: repeat(3, 1fr); }
-
 .chart-canvas { width: 100%; height: 280px; }
 .chart-canvas.small { height: 200px; }
 .chart-canvas.large { height: 360px; }
-
-/* ═══════════════════════════════════════════════════════════════
-   TABLES
-   ═══════════════════════════════════════════════════════════════ */
-.data-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 12px;
-}
-.data-table th {
-  text-align: left;
-  font-size: 10px; font-weight: 600;
-  color: var(--text-tertiary);
-  letter-spacing: 0.06em; text-transform: uppercase;
-  padding: 10px 12px;
-  border-bottom: 1px solid var(--border-subtle);
-  background: var(--bg-elevated);
-  position: sticky; top: 0;
-}
-.data-table td {
-  padding: 10px 12px;
-  border-bottom: 1px solid var(--border-subtle);
-  color: var(--text-secondary);
-}
+.data-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.data-table th { text-align: left; font-size: 10px; font-weight: 600; color: var(--text-tertiary); letter-spacing: 0.06em; text-transform: uppercase; padding: 10px 12px; border-bottom: 1px solid var(--border-subtle); background: var(--bg-elevated); position: sticky; top: 0; }
+.data-table td { padding: 10px 12px; border-bottom: 1px solid var(--border-subtle); color: var(--text-secondary); }
 .data-table tr { transition: background var(--transition-base); cursor: pointer; }
 .data-table tr:hover td { background: var(--bg-hover); color: var(--text-primary); }
 .data-table .mono { font-family: var(--font-mono); font-size: 11px; }
@@ -543,462 +198,149 @@ a { color: inherit; text-decoration: none; }
 .data-table .num.pos { color: var(--status-success); }
 .data-table .num.neg { color: var(--brand-red); }
 .data-table .num.warn { color: var(--brand-amber); }
-
-.table-wrap {
-  background: var(--bg-card);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-lg);
-  overflow: hidden;
-  max-height: 600px; overflow-y: auto;
-}
-
-/* status badges */
-.badge {
-  display: inline-block;
-  font-size: 10px; font-weight: 600;
-  padding: 3px 8px; border-radius: 4px;
-  letter-spacing: 0.04em;
-  font-family: var(--font-mono);
-}
+.table-wrap { background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); overflow: hidden; max-height: 600px; overflow-y: auto; }
+.badge { display: inline-block; font-size: 10px; font-weight: 600; padding: 3px 8px; border-radius: 4px; letter-spacing: 0.04em; font-family: var(--font-mono); }
 .badge.completed { background: rgba(0,212,170,0.12); color: var(--status-success); }
 .badge.live { background: rgba(255,197,51,0.12); color: var(--brand-amber); }
 .badge.cancelled { background: rgba(255,255,255,0.06); color: var(--text-tertiary); }
 .badge.partial { background: rgba(77,159,255,0.12); color: var(--status-info); }
 .badge.incomplete { background: rgba(254,43,50,0.12); color: var(--brand-red); }
-
-/* division badges */
-.div-badge {
-  display: inline-block;
-  font-size: 9px; font-weight: 700;
-  padding: 2px 7px; border-radius: 3px;
-  letter-spacing: 0.06em;
-  font-family: var(--font-mono);
-}
+.div-badge { display: inline-block; font-size: 9px; font-weight: 700; padding: 2px 7px; border-radius: 3px; letter-spacing: 0.06em; font-family: var(--font-mono); }
 .div-badge.RBR { background: rgba(254,43,50,0.15); color: var(--brand-red); }
 .div-badge.STL { background: rgba(255,65,165,0.15); color: var(--brand-pink); }
 .div-badge.ALU { background: rgba(255,197,51,0.15); color: var(--brand-amber); }
 .div-badge.NFS { background: rgba(77,159,255,0.15); color: var(--status-info); }
 .div-badge.SST { background: rgba(0,212,170,0.15); color: var(--status-success); }
-
-/* ═══════════════════════════════════════════════════════════════
-   FILTERS BAR
-   ═══════════════════════════════════════════════════════════════ */
-.filter-bar {
-  background: var(--bg-card);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-lg);
-  padding: 14px 18px;
-  margin-bottom: 16px;
-  display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
-}
+.filter-bar { background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 14px 18px; margin-bottom: 16px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
 .filter-group { display: flex; flex-direction: column; gap: 4px; }
-.filter-label {
-  font-size: 9px; font-weight: 600;
-  color: var(--text-tertiary);
-  letter-spacing: 0.08em; text-transform: uppercase;
-}
-.filter-select, .filter-input {
-  background: var(--bg-elevated);
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-sm);
-  padding: 7px 10px;
-  font-size: 12px;
-  color: var(--text-primary);
-  min-width: 140px;
-  transition: all var(--transition-base);
-  outline: none;
-}
-.filter-select:focus, .filter-input:focus {
-  border-color: var(--brand-red);
-}
+.filter-label { font-size: 9px; font-weight: 600; color: var(--text-tertiary); letter-spacing: 0.08em; text-transform: uppercase; }
+.filter-select, .filter-input { background: var(--bg-elevated); border: 1px solid var(--border-default); border-radius: var(--radius-sm); padding: 7px 10px; font-size: 12px; color: var(--text-primary); min-width: 140px; transition: all var(--transition-base); outline: none; }
+.filter-select:focus, .filter-input:focus { border-color: var(--brand-red); }
 .filter-input::placeholder { color: var(--text-muted); }
-
-.filter-btn {
-  background: var(--bg-elevated);
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-sm);
-  padding: 7px 12px;
-  font-size: 11px; font-weight: 500;
-  color: var(--text-secondary);
-  margin-top: 14px;
-  transition: all var(--transition-base);
-}
+.filter-btn { background: var(--bg-elevated); border: 1px solid var(--border-default); border-radius: var(--radius-sm); padding: 7px 12px; font-size: 11px; font-weight: 500; color: var(--text-secondary); margin-top: 14px; transition: all var(--transition-base); }
 .filter-btn:hover { color: var(--text-primary); border-color: var(--border-strong); }
-.filter-btn.primary {
-  background: var(--brand-red); color: #fff; border-color: var(--brand-red);
-}
+.filter-btn.primary { background: var(--brand-red); color: #fff; border-color: var(--brand-red); }
 .filter-btn.primary:hover { background: #e8252c; }
-
-/* ═══════════════════════════════════════════════════════════════
-   MODAL — Deal drill-down
-   ═══════════════════════════════════════════════════════════════ */
-.modal-overlay {
-  position: fixed; inset: 0; z-index: 500;
-  background: rgba(0,0,0,0.7);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  display: none; align-items: center; justify-content: center;
-  padding: 24px;
-  animation: fadeIn 0.2s;
-}
+.modal-overlay { position: fixed; inset: 0; z-index: 500; background: rgba(0,0,0,0.7); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); display: none; align-items: center; justify-content: center; padding: 24px; animation: fadeIn 0.2s; }
 [data-theme="light"] .modal-overlay { background: rgba(10,10,15,0.5); }
 .modal-overlay.show { display: flex; }
-
-.modal {
-  background: var(--bg-card);
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-xl);
-  width: 100%; max-width: 720px;
-  max-height: 90vh; overflow-y: auto;
-  box-shadow: var(--shadow-soft);
-  animation: modalIn 0.3s var(--transition-smooth);
-}
-@keyframes modalIn {
-  from { opacity: 0; transform: scale(0.95) translateY(20px); }
-  to { opacity: 1; transform: scale(1) translateY(0); }
-}
-
-.modal-header {
-  padding: 24px 28px 16px;
-  border-bottom: 1px solid var(--border-subtle);
-  display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;
-}
-.modal-title {
-  font-family: var(--font-display);
-  font-size: 20px; font-weight: 700;
-  color: var(--text-primary);
-  letter-spacing: -0.02em;
-}
-.modal-sub {
-  font-size: 12px; color: var(--text-tertiary);
-  font-family: var(--font-mono);
-  margin-top: 4px;
-}
-.modal-close {
-  background: var(--bg-hover);
-  width: 32px; height: 32px;
-  border-radius: var(--radius-sm);
-  display: flex; align-items: center; justify-content: center;
-  color: var(--text-secondary);
-  flex-shrink: 0;
-  transition: all var(--transition-base);
-}
+.modal { background: var(--bg-card); border: 1px solid var(--border-default); border-radius: var(--radius-xl); width: 100%; max-width: 720px; max-height: 90vh; overflow-y: auto; box-shadow: var(--shadow-soft); animation: modalIn 0.3s var(--transition-smooth); }
+@keyframes modalIn { from { opacity: 0; transform: scale(0.95) translateY(20px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+.modal-header { padding: 24px 28px 16px; border-bottom: 1px solid var(--border-subtle); display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.modal-title { font-family: var(--font-display); font-size: 20px; font-weight: 700; color: var(--text-primary); letter-spacing: -0.02em; }
+.modal-sub { font-size: 12px; color: var(--text-tertiary); font-family: var(--font-mono); margin-top: 4px; }
+.modal-close { background: var(--bg-hover); width: 32px; height: 32px; border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; color: var(--text-secondary); flex-shrink: 0; transition: all var(--transition-base); }
 .modal-close:hover { background: var(--bg-elevated); color: var(--text-primary); }
-
 .modal-body { padding: 24px 28px; }
-
-.detail-grid {
-  display: grid; grid-template-columns: 1fr 1fr;
-  gap: 12px;
-  margin-bottom: 20px;
-}
-.detail-item {
-  background: var(--bg-elevated);
-  border-radius: var(--radius-md);
-  padding: 12px 14px;
-}
-.detail-label {
-  font-size: 10px; font-weight: 600;
-  color: var(--text-tertiary);
-  letter-spacing: 0.06em; text-transform: uppercase;
-  margin-bottom: 4px;
-}
-.detail-value {
-  font-size: 14px; font-weight: 500;
-  color: var(--text-primary);
-  font-family: var(--font-mono);
-}
-
-.pnl-breakdown {
-  background: var(--bg-elevated);
-  border-radius: var(--radius-md);
-  padding: 16px 18px;
-  margin-top: 16px;
-}
-.pnl-row {
-  display: flex; justify-content: space-between; align-items: center;
-  padding: 8px 0;
-  font-size: 13px;
-  border-bottom: 1px dashed var(--border-subtle);
-}
+.detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+.detail-item { background: var(--bg-elevated); border-radius: var(--radius-md); padding: 12px 14px; }
+.detail-label { font-size: 10px; font-weight: 600; color: var(--text-tertiary); letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 4px; }
+.detail-value { font-size: 14px; font-weight: 500; color: var(--text-primary); font-family: var(--font-mono); }
+.pnl-breakdown { background: var(--bg-elevated); border-radius: var(--radius-md); padding: 16px 18px; margin-top: 16px; }
+.pnl-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; font-size: 13px; border-bottom: 1px dashed var(--border-subtle); }
 .pnl-row:last-of-type { border-bottom: none; }
-.pnl-row.total {
-  font-family: var(--font-display);
-  font-weight: 700;
-  font-size: 15px;
-  border-top: 2px solid var(--border-default);
-  border-bottom: none;
-  margin-top: 8px;
-  padding-top: 12px;
-}
+.pnl-row.total { font-family: var(--font-display); font-weight: 700; font-size: 15px; border-top: 2px solid var(--border-default); border-bottom: none; margin-top: 8px; padding-top: 12px; }
 .pnl-row.total.positive { color: var(--status-success); }
 .pnl-row.total.negative { color: var(--brand-red); }
 .pnl-row .label { color: var(--text-secondary); }
 .pnl-row .value { font-family: var(--font-mono); color: var(--text-primary); font-weight: 500; }
 .pnl-row .value.positive { color: var(--status-success); }
 .pnl-row .value.negative { color: var(--brand-red); }
-
-/* ═══════════════════════════════════════════════════════════════
-   LOADING + EMPTY STATES
-   ═══════════════════════════════════════════════════════════════ */
-.loading-overlay {
-  position: fixed; inset: 0; z-index: 200;
-  background: var(--bg-primary);
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-  gap: 16px;
-  transition: opacity 0.4s;
-}
+.loading-overlay { position: fixed; inset: 0; z-index: 200; background: var(--bg-primary); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; transition: opacity 0.4s; }
 .loading-overlay.hide { opacity: 0; pointer-events: none; }
-
-.spinner {
-  width: 44px; height: 44px;
-  border: 3px solid var(--border-subtle);
-  border-top-color: var(--brand-red);
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-}
+.spinner { width: 44px; height: 44px; border: 3px solid var(--border-subtle); border-top-color: var(--brand-red); border-radius: 50%; animation: spin 0.8s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
-
-.loading-text {
-  font-family: var(--font-mono);
-  font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase;
-  color: var(--text-tertiary);
-}
-
-.empty-state {
-  padding: 60px 24px; text-align: center;
-  color: var(--text-tertiary);
-}
-.empty-state h3 {
-  font-family: var(--font-display);
-  font-size: 16px; font-weight: 600;
-  color: var(--text-secondary);
-  margin-bottom: 8px;
-}
-
-/* ═══════════════════════════════════════════════════════════════
-   INVESTOR PAGE — Premium styling
-   ═══════════════════════════════════════════════════════════════ */
-.investor-hero {
-  background: linear-gradient(135deg, var(--bg-card) 0%, var(--bg-elevated) 100%);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-xl);
-  padding: 40px;
-  margin-bottom: 20px;
-  position: relative; overflow: hidden;
-}
-.investor-hero::before {
-  content: ''; position: absolute; top: -50%; right: -10%;
-  width: 500px; height: 500px;
-  background: radial-gradient(circle, var(--brand-red), transparent 70%);
-  opacity: 0.08;
-  pointer-events: none;
-}
-.investor-eyebrow {
-  font-family: var(--font-mono);
-  font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase;
-  color: var(--brand-red);
-  margin-bottom: 12px;
-}
-.investor-title {
-  font-family: var(--font-display);
-  font-size: 36px; font-weight: 800;
-  letter-spacing: -0.03em;
-  color: var(--text-primary);
-  margin-bottom: 12px;
-  line-height: 1.1;
-}
-.investor-sub {
-  font-size: 15px; color: var(--text-secondary);
-  max-width: 600px; line-height: 1.6;
-}
-
-/* ═══════════════════════════════════════════════════════════════
-   FOOTER
-   ═══════════════════════════════════════════════════════════════ */
-.app-footer {
-  padding: 24px 28px;
-  text-align: center;
-  border-top: 1px solid var(--border-subtle);
-  margin-top: 40px;
-}
-.app-footer-text {
-  font-family: var(--font-mono);
-  font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase;
-  color: var(--text-muted);
-}
-
-/* responsive */
-@media (max-width: 1100px) {
-  .kpi-grid { grid-template-columns: repeat(2, 1fr); }
-  .chart-grid.cols-2, .chart-grid.cols-2-eq { grid-template-columns: 1fr; }
-  .chart-grid.cols-3 { grid-template-columns: 1fr 1fr; }
-}
-@media (max-width: 700px) {
-  .app-nav { padding: 12px 16px; flex-wrap: wrap; }
-  .nav-tabs { width: 100%; overflow-x: auto; }
-  .app-main { padding: 16px; }
-  .chart-grid.cols-3 { grid-template-columns: 1fr; }
-}
-
-/* ═══════════════════════════════════════════════════════════════
-   MULTI-SELECT DROPDOWN (BSPL Status)
-   ═══════════════════════════════════════════════════════════════ */
+.loading-text { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-tertiary); }
+.empty-state { padding: 60px 24px; text-align: center; color: var(--text-tertiary); }
+.empty-state h3 { font-family: var(--font-display); font-size: 16px; font-weight: 600; color: var(--text-secondary); margin-bottom: 8px; }
+.investor-hero { background: linear-gradient(135deg, var(--bg-card) 0%, var(--bg-elevated) 100%); border: 1px solid var(--border-subtle); border-radius: var(--radius-xl); padding: 40px; margin-bottom: 20px; position: relative; overflow: hidden; }
+.investor-hero::before { content: ''; position: absolute; top: -50%; right: -10%; width: 500px; height: 500px; background: radial-gradient(circle, var(--brand-red), transparent 70%); opacity: 0.08; pointer-events: none; }
+.investor-eyebrow { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--brand-red); margin-bottom: 12px; }
+.investor-title { font-family: var(--font-display); font-size: 36px; font-weight: 800; letter-spacing: -0.03em; color: var(--text-primary); margin-bottom: 12px; line-height: 1.1; }
+.investor-sub { font-size: 15px; color: var(--text-secondary); max-width: 600px; line-height: 1.6; }
+.app-footer { padding: 24px 28px; text-align: center; border-top: 1px solid var(--border-subtle); margin-top: 40px; }
+.app-footer-text { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); }
+@media (max-width: 1100px) { .kpi-grid { grid-template-columns: repeat(2, 1fr); } .chart-grid.cols-2, .chart-grid.cols-2-eq { grid-template-columns: 1fr; } .chart-grid.cols-3 { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 700px) { .app-nav { padding: 12px 16px; flex-wrap: wrap; } .nav-tabs { width: 100%; overflow-x: auto; } .app-main { padding: 16px; } .chart-grid.cols-3 { grid-template-columns: 1fr; } }
 .multi-select-wrap { position: relative; min-width: 160px; }
-.multi-select-btn {
-  width: 100%;
-  background: var(--bg-elevated);
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-sm);
-  padding: 7px 10px;
-  font-size: 12px;
-  color: var(--text-primary);
-  text-align: left;
-  cursor: pointer;
-  display: flex; align-items: center; justify-content: space-between; gap: 6px;
-  transition: all var(--transition-base);
-}
+.multi-select-btn { width: 100%; background: var(--bg-elevated); border: 1px solid var(--border-default); border-radius: var(--radius-sm); padding: 7px 10px; font-size: 12px; color: var(--text-primary); text-align: left; cursor: pointer; display: flex; align-items: center; justify-content: space-between; gap: 6px; transition: all var(--transition-base); }
 .multi-select-btn:focus { border-color: var(--brand-red); outline: none; }
 .multi-select-btn.active { border-color: var(--brand-red); }
 .ms-arrow { font-size: 10px; color: var(--text-tertiary); transition: transform 0.2s; }
 .multi-select-btn.open .ms-arrow { transform: rotate(180deg); }
-.multi-select-dropdown {
-  position: absolute; top: calc(100% + 4px); left: 0; z-index: 200;
-  background: var(--bg-card);
-  border: 1px solid var(--border-default);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-soft);
-  min-width: 200px;
-  max-height: 240px; overflow-y: auto;
-  display: none;
-  padding: 6px;
-}
+.multi-select-dropdown { position: absolute; top: calc(100% + 4px); left: 0; z-index: 200; background: var(--bg-card); border: 1px solid var(--border-default); border-radius: var(--radius-md); box-shadow: var(--shadow-soft); min-width: 200px; max-height: 240px; overflow-y: auto; display: none; padding: 6px; }
 .multi-select-dropdown.open { display: block; animation: fadeIn 0.15s; }
-.ms-option {
-  display: flex; align-items: center; gap: 8px;
-  padding: 7px 10px;
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  font-size: 12px;
-  color: var(--text-secondary);
-  transition: all var(--transition-base);
-  user-select: none;
-}
+.ms-option { display: flex; align-items: center; gap: 8px; padding: 7px 10px; border-radius: var(--radius-sm); cursor: pointer; font-size: 12px; color: var(--text-secondary); transition: all var(--transition-base); user-select: none; }
 .ms-option:hover { background: var(--bg-hover); color: var(--text-primary); }
 .ms-option input[type=checkbox] { accent-color: var(--brand-red); width: 13px; height: 13px; cursor: pointer; }
 .ms-option.checked { color: var(--text-primary); }
-
-/* ═══════════════════════════════════════════════════════════════
-   DIVISION P&L TABLE
-   ═══════════════════════════════════════════════════════════════ */
-.div-pnl-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 12px;
-  margin-top: 4px;
-}
-.div-pnl-table th {
-  font-size: 10px; font-weight: 600;
-  color: var(--text-tertiary);
-  letter-spacing: 0.06em; text-transform: uppercase;
-  padding: 10px 14px;
-  border-bottom: 1px solid var(--border-subtle);
-  background: var(--bg-elevated);
-  text-align: right;
-}
+.div-pnl-table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 4px; }
+.div-pnl-table th { font-size: 10px; font-weight: 600; color: var(--text-tertiary); letter-spacing: 0.06em; text-transform: uppercase; padding: 10px 14px; border-bottom: 1px solid var(--border-subtle); background: var(--bg-elevated); text-align: right; }
 .div-pnl-table th:first-child { text-align: left; }
-.div-pnl-table td {
-  padding: 10px 14px;
-  border-bottom: 1px dashed var(--border-subtle);
-  color: var(--text-secondary);
-  text-align: right;
-  font-family: var(--font-mono);
-  font-size: 11px;
-}
-.div-pnl-table td:first-child {
-  text-align: left;
-  font-family: var(--font-body);
-  font-weight: 600;
-  color: var(--text-primary);
-  font-size: 12px;
-}
+.div-pnl-table td { padding: 10px 14px; border-bottom: 1px dashed var(--border-subtle); color: var(--text-secondary); text-align: right; font-family: var(--font-mono); font-size: 11px; }
+.div-pnl-table td:first-child { text-align: left; font-family: var(--font-body); font-weight: 600; color: var(--text-primary); font-size: 12px; }
 .div-pnl-table tr:last-child td { border-bottom: none; }
 .div-pnl-table .pos { color: var(--status-success); }
 .div-pnl-table .neg { color: var(--brand-red); }
-.div-pnl-table tr.total-row td {
-  border-top: 2px solid var(--border-default);
-  border-bottom: none;
-  font-weight: 700;
-  color: var(--text-primary);
-}
-
+.div-pnl-table tr.total-row td { border-top: 2px solid var(--border-default); border-bottom: none; font-weight: 700; color: var(--text-primary); }
+/* ADMIN TERMINAL */
+.adm-lock { display: flex; align-items: center; justify-content: center; padding: 40px; }
+.adm-lock-card { background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-xl); padding: 32px; width: 100%; max-width: 360px; text-align: center; }
+.adm-lock-icon { font-size: 26px; margin-bottom: 10px; }
+.adm-lock-title { font-family: var(--font-display); font-weight: 600; margin-bottom: 16px; color: var(--text-primary); }
+.adm-lock-err { display: none; color: var(--brand-red); font-size: 12px; margin-top: 8px; }
+.adm-section { background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 20px; margin-bottom: 14px; }
+.adm-section-title { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--brand-red); margin-bottom: 4px; }
+.adm-section-desc { font-size: 12px; color: var(--text-tertiary); margin-bottom: 16px; }
+.adm-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.adm-grid.cols-2 { grid-template-columns: repeat(2, 1fr); }
+.adm-field { display: flex; flex-direction: column; gap: 5px; }
+.adm-field label { font-size: 10px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-tertiary); }
+.adm-field select, .adm-field input[type=text], .adm-field input[type=number], .adm-field input[type=password] { background: var(--bg-elevated); border: 1px solid var(--border-default); border-radius: var(--radius-sm); padding: 8px 10px; font-size: 12px; color: var(--text-primary); outline: none; transition: all var(--transition-base); font-family: var(--font-mono); }
+.adm-field select:focus, .adm-field input:focus { border-color: var(--brand-red); }
+.adm-field .hint { font-size: 10px; color: var(--text-muted); }
+.adm-check { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-secondary); margin-top: 22px; cursor: pointer; user-select: none; }
+.adm-check input { accent-color: var(--brand-red); width: 15px; height: 15px; cursor: pointer; }
+.adm-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 6px; position: sticky; bottom: 0; background: linear-gradient(transparent, var(--bg-primary) 30%); padding: 14px 0 4px; }
+.adm-status { font-size: 12px; color: var(--status-success); opacity: 0; transition: opacity 0.3s; font-family: var(--font-mono); }
+@media (max-width: 1100px) { .adm-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 700px) { .adm-grid, .adm-grid.cols-2 { grid-template-columns: 1fr; } }
 </style>
 </head>
 <body>
-
 <div class="bg-grid"></div>
-
-<!-- ═══════════════════════════════════════════════════════════════
-     LOGIN SCREEN
-     ═══════════════════════════════════════════════════════════════ -->
 <div id="login-screen">
   <div class="login-bg-glow"></div>
   <div class="login-card">
     <div class="login-logo">
-      <div class="login-logo-grid">
-        <div></div><div></div><div></div><div></div>
-      </div>
-      <div class="login-brand">
-        <h1>Double Click Trading</h1>
-        <p>FZE · Live Dashboard</p>
-      </div>
+      <div class="login-logo-grid"><div></div><div></div><div></div><div></div></div>
+      <div class="login-brand"><h1>Double Click Trading</h1><p>FZE · Live Dashboard</p></div>
     </div>
-
     <h2 class="login-headline">Welcome back.</h2>
     <p class="login-sub">Enter your access code to view today's numbers.</p>
-
     <div class="login-error" id="login-error">Incorrect access code. Try again.</div>
-
-    <div class="login-input-wrap">
-      <input type="password" class="login-input" id="password-input" placeholder="Access code" autocomplete="off"/>
-    </div>
-
+    <div class="login-input-wrap"><input type="password" class="login-input" id="password-input" placeholder="Access code" autocomplete="off"/></div>
     <button class="login-btn" id="password-btn">Continue</button>
-
     <div class="login-divider">Then</div>
-
     <button class="google-btn" id="google-btn" disabled style="opacity:0.5;cursor:not-allowed">
       <svg viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
       Sign in with Google to load data
     </button>
-
-    <div class="login-footer">
-      Press <kbd style="font-family:var(--font-mono);font-size:10px;background:var(--bg-elevated);padding:2px 6px;border-radius:3px;border:1px solid var(--border-default)">Enter</kbd> after typing code
-    </div>
+    <div class="login-footer">Press <kbd style="font-family:var(--font-mono);font-size:10px;background:var(--bg-elevated);padding:2px 6px;border-radius:3px;border:1px solid var(--border-default)">Enter</kbd> after typing code</div>
   </div>
 </div>
 
-<!-- ═══════════════════════════════════════════════════════════════
-     LOADING OVERLAY
-     ═══════════════════════════════════════════════════════════════ -->
 <div class="loading-overlay" id="loading-overlay" style="display:none">
   <div class="spinner"></div>
   <div class="loading-text" id="loading-text">Fetching live data...</div>
 </div>
 
-<!-- ═══════════════════════════════════════════════════════════════
-     MAIN APP
-     ═══════════════════════════════════════════════════════════════ -->
 <div id="app">
-
   <nav class="app-nav">
     <div class="nav-brand">
-      <div class="nav-logo">
-        <div></div><div></div><div></div><div></div>
-      </div>
+      <div class="nav-logo"><div></div><div></div><div></div><div></div></div>
       <div class="nav-title">DC Trading <span>FZE</span></div>
     </div>
-
     <div class="nav-tabs" id="nav-tabs">
       <button class="nav-tab active" data-page="overview">Overview</button>
       <button class="nav-tab" data-page="deals">Deals</button>
@@ -1007,12 +349,11 @@ a { color: inherit; text-decoration: none; }
       <button class="nav-tab" data-page="bspl">BSPL</button>
       <button class="nav-tab" data-page="investor">Investor</button>
     </div>
-
     <div class="nav-actions">
-      <div class="nav-status">
-        <div class="dot"></div>
-        <span id="status-text">Live · 60s</span>
-      </div>
+      <div class="nav-status"><div class="dot"></div><span id="status-text">Live · 60s</span></div>
+      <button class="icon-btn" id="admin-btn" title="Admin terminal">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      </button>
       <button class="icon-btn" id="theme-toggle" title="Toggle theme">
         <svg id="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
         <svg id="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
@@ -1028,514 +369,270 @@ a { color: inherit; text-decoration: none; }
 
   <main class="app-main">
 
-    <!-- OVERVIEW PAGE -->
     <div class="page active" id="page-overview">
-      <div class="page-header">
-        <div class="page-eyebrow">// 01 — Pulse</div>
-        <h1 class="page-title">Overview</h1>
-        <p class="page-desc">Everything in one breath — the numbers that matter, right now.</p>
-      </div>
-
+      <div class="page-header"><div class="page-eyebrow">// 01 — Pulse</div><h1 class="page-title">Overview</h1><p class="page-desc">Everything in one breath — the numbers that matter, right now.</p></div>
       <div class="kpi-grid">
-        <div class="kpi-card" data-color="red">
-          <div class="kpi-label">Total Revenue</div>
-          <div class="kpi-value" id="kpi-revenue">—</div>
-          <div class="kpi-meta" id="kpi-revenue-meta">AED · all completed deals</div>
-        </div>
-        <div class="kpi-card" data-color="pink">
-          <div class="kpi-label">Gross Profit</div>
-          <div class="kpi-value" id="kpi-gp">—</div>
-          <div class="kpi-meta" id="kpi-gp-meta">AED · net of all charges</div>
-        </div>
-        <div class="kpi-card" data-color="amber">
-          <div class="kpi-label">GP Margin</div>
-          <div class="kpi-value" id="kpi-margin">—</div>
-          <div class="kpi-meta" id="kpi-margin-meta">healthy zone</div>
-        </div>
-        <div class="kpi-card" data-color="green">
-          <div class="kpi-label">Total Deals</div>
-          <div class="kpi-value" id="kpi-deals">—</div>
-          <div class="kpi-meta" id="kpi-deals-meta">live · completed · cancelled</div>
-        </div>
+        <div class="kpi-card" data-color="red"><div class="kpi-label">Total Revenue</div><div class="kpi-value" id="kpi-revenue">—</div><div class="kpi-meta" id="kpi-revenue-meta">all completed deals</div></div>
+        <div class="kpi-card" data-color="pink"><div class="kpi-label">Gross Profit</div><div class="kpi-value" id="kpi-gp">—</div><div class="kpi-meta" id="kpi-gp-meta">net of all charges</div></div>
+        <div class="kpi-card" data-color="amber"><div class="kpi-label">GP Margin</div><div class="kpi-value" id="kpi-margin">—</div><div class="kpi-meta" id="kpi-margin-meta">healthy zone</div></div>
+        <div class="kpi-card" data-color="green"><div class="kpi-label">Total Deals</div><div class="kpi-value" id="kpi-deals">—</div><div class="kpi-meta" id="kpi-deals-meta">live · completed · cancelled</div></div>
       </div>
-
       <div class="chart-grid cols-2" style="margin-bottom:12px">
-        <div class="panel">
-          <div class="panel-header">
-            <div>
-              <div class="panel-title">Revenue & Gross Profit · Monthly</div>
-              <div class="panel-sub">Bars = Revenue · Line = GP · Hover for breakdown</div>
-            </div>
-          </div>
-          <div class="chart-canvas" id="chart-monthly"></div>
-        </div>
-        <div class="panel">
-          <div class="panel-header">
-            <div>
-              <div class="panel-title">Division Split</div>
-              <div class="panel-sub">By gross profit contribution</div>
-            </div>
-          </div>
-          <div class="chart-canvas" id="chart-division"></div>
-        </div>
+        <div class="panel"><div class="panel-header"><div><div class="panel-title">Revenue & Gross Profit · Monthly</div><div class="panel-sub">Bars = Revenue · Line = GP · Hover for breakdown</div></div></div><div class="chart-canvas" id="chart-monthly"></div></div>
+        <div class="panel"><div class="panel-header"><div><div class="panel-title">Division Split</div><div class="panel-sub">By gross profit contribution</div></div></div><div class="chart-canvas" id="chart-division"></div></div>
       </div>
-
       <div class="chart-grid cols-2-eq">
-        <div class="panel">
-          <div class="panel-header">
-            <div>
-              <div class="panel-title">Top 5 customers by GP</div>
-              <div class="panel-sub">Who's actually printing money for us</div>
-            </div>
-          </div>
-          <div class="chart-canvas small" id="chart-top-customers"></div>
-        </div>
-        <div class="panel">
-          <div class="panel-header">
-            <div>
-              <div class="panel-title">Deal status funnel</div>
-              <div class="panel-sub">Where do all the deals actually land?</div>
-            </div>
-          </div>
-          <div class="chart-canvas small" id="chart-status"></div>
-        </div>
+        <div class="panel"><div class="panel-header"><div><div class="panel-title">Top 5 customers by GP</div><div class="panel-sub">Who's actually printing money for us</div></div></div><div class="chart-canvas small" id="chart-top-customers"></div></div>
+        <div class="panel"><div class="panel-header"><div><div class="panel-title">Deal status funnel</div><div class="panel-sub">Where do all the deals actually land?</div></div></div><div class="chart-canvas small" id="chart-status"></div></div>
       </div>
     </div>
 
-    <!-- DEALS PAGE -->
     <div class="page" id="page-deals">
-      <div class="page-header">
-        <div class="page-eyebrow">// 02 — Granular</div>
-        <h1 class="page-title">All Deals</h1>
-        <p class="page-desc">Every single deal · click any row to drill into its full P&L.</p>
-      </div>
-
+      <div class="page-header"><div class="page-eyebrow">// 02 — Granular</div><h1 class="page-title">All Deals</h1><p class="page-desc">Every single deal · click any row to drill into its full P&L.</p></div>
       <div class="filter-bar">
-        <div class="filter-group">
-          <span class="filter-label">Search</span>
-          <input type="text" class="filter-input" id="deal-search" placeholder="Deal / Invoice / Customer..."/>
-        </div>
-        <div class="filter-group">
-          <span class="filter-label">From Date</span>
-          <input type="date" class="filter-input" id="deal-from"/>
-        </div>
-        <div class="filter-group">
-          <span class="filter-label">To Date</span>
-          <input type="date" class="filter-input" id="deal-to"/>
-        </div>
-        <div class="filter-group">
-          <span class="filter-label">Division</span>
-          <select class="filter-select" id="deal-division"><option value="">All</option></select>
-        </div>
-        <div class="filter-group">
-          <span class="filter-label">Status</span>
-          <select class="filter-select" id="deal-status"><option value="">All</option></select>
-        </div>
-        <div class="filter-group">
-          <span class="filter-label">Customer</span>
-          <select class="filter-select" id="deal-customer"><option value="">All</option></select>
-        </div>
-        <div class="filter-group">
-          <span class="filter-label">Vendor</span>
-          <select class="filter-select" id="deal-vendor"><option value="">All</option></select>
-        </div>
+        <div class="filter-group"><span class="filter-label">Search</span><input type="text" class="filter-input" id="deal-search" placeholder="Deal / Invoice / Customer..."/></div>
+        <div class="filter-group"><span class="filter-label">From Date</span><input type="date" class="filter-input" id="deal-from"/></div>
+        <div class="filter-group"><span class="filter-label">To Date</span><input type="date" class="filter-input" id="deal-to"/></div>
+        <div class="filter-group"><span class="filter-label">Division</span><select class="filter-select" id="deal-division"><option value="">All</option></select></div>
+        <div class="filter-group"><span class="filter-label">Status</span><select class="filter-select" id="deal-status"><option value="">All</option></select></div>
+        <div class="filter-group"><span class="filter-label">Customer</span><select class="filter-select" id="deal-customer"><option value="">All</option></select></div>
+        <div class="filter-group"><span class="filter-label">Vendor</span><select class="filter-select" id="deal-vendor"><option value="">All</option></select></div>
         <button class="filter-btn" id="deal-reset">Reset</button>
       </div>
-
       <div class="kpi-grid" style="grid-template-columns:repeat(4,1fr);margin-bottom:16px">
-        <div class="kpi-card" data-color="red">
-          <div class="kpi-label">Filtered Deals</div>
-          <div class="kpi-value" id="dx-count" style="font-size:22px">—</div>
-          <div class="kpi-meta">currently shown</div>
-        </div>
-        <div class="kpi-card" data-color="pink">
-          <div class="kpi-label">Filtered Revenue</div>
-          <div class="kpi-value" id="dx-rev" style="font-size:22px">—</div>
-          <div class="kpi-meta">AED total</div>
-        </div>
-        <div class="kpi-card" data-color="amber">
-          <div class="kpi-label">Filtered GP</div>
-          <div class="kpi-value" id="dx-gp" style="font-size:22px">—</div>
-          <div class="kpi-meta">AED total</div>
-        </div>
-        <div class="kpi-card" data-color="green">
-          <div class="kpi-label">Avg GP per Deal</div>
-          <div class="kpi-value" id="dx-avg" style="font-size:22px">—</div>
-          <div class="kpi-meta">AED average</div>
-        </div>
+        <div class="kpi-card" data-color="red"><div class="kpi-label">Filtered Deals</div><div class="kpi-value" id="dx-count" style="font-size:22px">—</div><div class="kpi-meta">currently shown</div></div>
+        <div class="kpi-card" data-color="pink"><div class="kpi-label">Filtered Revenue</div><div class="kpi-value" id="dx-rev" style="font-size:22px">—</div><div class="kpi-meta">total</div></div>
+        <div class="kpi-card" data-color="amber"><div class="kpi-label">Filtered GP</div><div class="kpi-value" id="dx-gp" style="font-size:22px">—</div><div class="kpi-meta">total</div></div>
+        <div class="kpi-card" data-color="green"><div class="kpi-label">Avg GP per Deal</div><div class="kpi-value" id="dx-avg" style="font-size:22px">—</div><div class="kpi-meta">average</div></div>
       </div>
-
       <div class="table-wrap">
         <table class="data-table" id="deals-table">
-          <thead>
-            <tr>
-              <th>Deal</th>
-              <th>Date</th>
-              <th>Division</th>
-              <th>Customer</th>
-              <th>Vendor</th>
-              <th style="text-align:right">Qty (MT)</th>
-              <th style="text-align:right">Revenue</th>
-              <th style="text-align:right">Cost</th>
-              <th style="text-align:right">GP</th>
-              <th>Status</th>
-            </tr>
-          </thead>
+          <thead><tr><th>Deal</th><th>Date</th><th>Division</th><th>Customer</th><th>Vendor</th><th style="text-align:right">Qty (MT)</th><th style="text-align:right">Revenue</th><th style="text-align:right">Cost</th><th style="text-align:right">GP</th><th>Status</th></tr></thead>
           <tbody id="deals-tbody"></tbody>
         </table>
       </div>
     </div>
 
-    <!-- CUSTOMERS PAGE -->
     <div class="page" id="page-customers">
-      <div class="page-header">
-        <div class="page-eyebrow">// 03 — Receivables</div>
-        <h1 class="page-title">Customer Analysis</h1>
-        <p class="page-desc">Who's profitable. Who's draining margins. Who's paying on time.</p>
-      </div>
-
+      <div class="page-header"><div class="page-eyebrow">// 03 — Receivables</div><h1 class="page-title">Customer Analysis</h1><p class="page-desc">Who's profitable. Who's draining margins. Who's paying on time.</p></div>
       <div class="chart-grid cols-2" style="margin-bottom:12px">
-        <div class="panel">
-          <div class="panel-header">
-            <div>
-              <div class="panel-title">GP by Customer</div>
-              <div class="panel-sub">Sorted high to low · click bar for details</div>
-            </div>
-          </div>
-          <div class="chart-canvas large" id="chart-customer-gp"></div>
-        </div>
-        <div class="panel">
-          <div class="panel-header">
-            <div>
-              <div class="panel-title">Customer concentration</div>
-              <div class="panel-sub">Revenue share — who depends on whom</div>
-            </div>
-          </div>
-          <div class="chart-canvas large" id="chart-customer-pie"></div>
-        </div>
+        <div class="panel"><div class="panel-header"><div><div class="panel-title">GP by Customer</div><div class="panel-sub">Sorted high to low · click bar for details</div></div></div><div class="chart-canvas large" id="chart-customer-gp"></div></div>
+        <div class="panel"><div class="panel-header"><div><div class="panel-title">Customer concentration</div><div class="panel-sub">Revenue share — who depends on whom</div></div></div><div class="chart-canvas large" id="chart-customer-pie"></div></div>
       </div>
-
       <div class="table-wrap">
         <table class="data-table" id="customers-table">
-          <thead>
-            <tr>
-              <th>Customer</th>
-              <th style="text-align:right">Deals</th>
-              <th style="text-align:right">Revenue (AED)</th>
-              <th style="text-align:right">GP (AED)</th>
-              <th style="text-align:right">Margin</th>
-              <th style="text-align:right">Avg GP/Deal</th>
-              <th>Health</th>
-            </tr>
-          </thead>
+          <thead><tr><th>Customer</th><th style="text-align:right">Deals</th><th style="text-align:right">Revenue</th><th style="text-align:right">GP</th><th style="text-align:right">Margin</th><th style="text-align:right">Avg GP/Deal</th><th>Health</th></tr></thead>
           <tbody id="customers-tbody"></tbody>
         </table>
       </div>
     </div>
 
-    <!-- VENDORS PAGE -->
     <div class="page" id="page-vendors">
-      <div class="page-header">
-        <div class="page-eyebrow">// 04 — Payables</div>
-        <h1 class="page-title">Vendor Analysis</h1>
-        <p class="page-desc">Where's the money going · which vendor is the cheapest · who's giving us credit.</p>
-      </div>
-
+      <div class="page-header"><div class="page-eyebrow">// 04 — Payables</div><h1 class="page-title">Vendor Analysis</h1><p class="page-desc">Where's the money going · which vendor is the cheapest · who's giving us credit.</p></div>
       <div class="chart-grid cols-2" style="margin-bottom:12px">
-        <div class="panel">
-          <div class="panel-header">
-            <div>
-              <div class="panel-title">Spend by vendor</div>
-              <div class="panel-sub">Top vendors by total purchase value</div>
-            </div>
-          </div>
-          <div class="chart-canvas large" id="chart-vendor-spend"></div>
-        </div>
-        <div class="panel">
-          <div class="panel-header">
-            <div>
-              <div class="panel-title">Vendor mix · currency</div>
-              <div class="panel-sub">FX exposure by source vendor</div>
-            </div>
-          </div>
-          <div class="chart-canvas large" id="chart-vendor-fx"></div>
-        </div>
+        <div class="panel"><div class="panel-header"><div><div class="panel-title">Spend by vendor</div><div class="panel-sub">Top vendors by total purchase value</div></div></div><div class="chart-canvas large" id="chart-vendor-spend"></div></div>
+        <div class="panel"><div class="panel-header"><div><div class="panel-title">Vendor mix · currency</div><div class="panel-sub">FX exposure by source vendor</div></div></div><div class="chart-canvas large" id="chart-vendor-fx"></div></div>
       </div>
-
       <div class="table-wrap">
         <table class="data-table" id="vendors-table">
-          <thead>
-            <tr>
-              <th>Vendor</th>
-              <th style="text-align:right">Deals</th>
-              <th style="text-align:right">Qty (MT)</th>
-              <th style="text-align:right">Total Cost (AED)</th>
-              <th style="text-align:right">Avg Cost/MT</th>
-              <th style="text-align:right">GP generated</th>
-              <th>Profile</th>
-            </tr>
-          </thead>
+          <thead><tr><th>Vendor</th><th style="text-align:right">Deals</th><th style="text-align:right">Qty (MT)</th><th style="text-align:right">Total Cost</th><th style="text-align:right">Avg Cost/MT</th><th style="text-align:right">GP generated</th><th>Profile</th></tr></thead>
           <tbody id="vendors-tbody"></tbody>
         </table>
       </div>
     </div>
-
-    <!-- BSPL PAGE -->
     <div class="page" id="page-bspl">
-      <div class="page-header">
-        <div class="page-eyebrow">// 05 — Financials</div>
-        <h1 class="page-title">Balance Sheet & P&L</h1>
-        <p class="page-desc">Everything responds to your filters · live, the moment you change them.</p>
-      </div>
-
+      <div class="page-header"><div class="page-eyebrow">// 05 — Financials</div><h1 class="page-title">Balance Sheet & P&L</h1><p class="page-desc">Everything responds to your filters · live, the moment you change them.</p></div>
       <div class="filter-bar">
-        <div class="filter-group">
-          <span class="filter-label">From Date</span>
-          <input type="date" class="filter-input" id="bspl-from"/>
-        </div>
-        <div class="filter-group">
-          <span class="filter-label">To Date</span>
-          <input type="date" class="filter-input" id="bspl-to"/>
-        </div>
-        <div class="filter-group">
-          <span class="filter-label">Division</span>
-          <select class="filter-select" id="bspl-division"><option value="">All</option></select>
-        </div>
-        <div class="filter-group">
-          <span class="filter-label">Customer</span>
-          <select class="filter-select" id="bspl-customer"><option value="">All</option></select>
-        </div>
-        <div class="filter-group">
-          <span class="filter-label">Vendor</span>
-          <select class="filter-select" id="bspl-vendor"><option value="">All</option></select>
-        </div>
-        <div class="filter-group">
-          <span class="filter-label">Status</span>
-          <div class="multi-select-wrap" id="bspl-status-wrap">
-            <button class="multi-select-btn" id="bspl-status-btn" type="button">All statuses <span class="ms-arrow">▾</span></button>
-            <div class="multi-select-dropdown" id="bspl-status-dropdown"></div>
-          </div>
-        </div>
+        <div class="filter-group"><span class="filter-label">From Date</span><input type="date" class="filter-input" id="bspl-from"/></div>
+        <div class="filter-group"><span class="filter-label">To Date</span><input type="date" class="filter-input" id="bspl-to"/></div>
+        <div class="filter-group"><span class="filter-label">Division</span><select class="filter-select" id="bspl-division"><option value="">All</option></select></div>
+        <div class="filter-group"><span class="filter-label">Customer</span><select class="filter-select" id="bspl-customer"><option value="">All</option></select></div>
+        <div class="filter-group"><span class="filter-label">Vendor</span><select class="filter-select" id="bspl-vendor"><option value="">All</option></select></div>
+        <div class="filter-group"><span class="filter-label">Status</span><div class="multi-select-wrap" id="bspl-status-wrap"><button class="multi-select-btn" id="bspl-status-btn" type="button">All statuses <span class="ms-arrow">▾</span></button><div class="multi-select-dropdown" id="bspl-status-dropdown"></div></div></div>
         <button class="filter-btn" id="bspl-reset">Reset</button>
       </div>
-
       <div class="kpi-grid">
-        <div class="kpi-card" data-color="red">
-          <div class="kpi-label">Revenue (filtered)</div>
-          <div class="kpi-value" id="bspl-revenue">—</div>
-          <div class="kpi-meta">AED</div>
-        </div>
-        <div class="kpi-card" data-color="pink">
-          <div class="kpi-label">Purchase cost</div>
-          <div class="kpi-value" id="bspl-cost">—</div>
-          <div class="kpi-meta">AED</div>
-        </div>
-        <div class="kpi-card" data-color="amber">
-          <div class="kpi-label">Gross Profit</div>
-          <div class="kpi-value" id="bspl-gp">—</div>
-          <div class="kpi-meta">AED · GP margin <span id="bspl-margin">—</span></div>
-        </div>
-        <div class="kpi-card" data-color="green">
-          <div class="kpi-label">Net Profit</div>
-          <div class="kpi-value" id="bspl-net">—</div>
-          <div class="kpi-meta">AED · after freight + bank charges</div>
-        </div>
+        <div class="kpi-card" data-color="red"><div class="kpi-label">Revenue (filtered)</div><div class="kpi-value" id="bspl-revenue">—</div><div class="kpi-meta">sales value</div></div>
+        <div class="kpi-card" data-color="pink"><div class="kpi-label">Purchase cost</div><div class="kpi-value" id="bspl-cost">—</div><div class="kpi-meta">cost of goods</div></div>
+        <div class="kpi-card" data-color="amber"><div class="kpi-label">Gross Profit</div><div class="kpi-value" id="bspl-gp">—</div><div class="kpi-meta">GP margin <span id="bspl-margin">—</span></div></div>
+        <div class="kpi-card" data-color="green"><div class="kpi-label">Net Profit</div><div class="kpi-value" id="bspl-net">—</div><div class="kpi-meta">after freight + charges</div></div>
       </div>
-
       <div class="panel" style="margin-top:12px">
-        <div class="panel-header">
-          <div>
-            <div class="panel-title">Detailed P&L breakdown</div>
-            <div class="panel-sub">Everything that reduces or increases your bottom line</div>
-          </div>
-        </div>
+        <div class="panel-header"><div><div class="panel-title">Detailed P&L breakdown</div><div class="panel-sub">Everything that reduces or increases your bottom line</div></div></div>
         <div class="pnl-breakdown" id="bspl-breakdown"></div>
       </div>
-
-      <!-- Customer & Vendor Analysis Charts -->
       <div class="chart-grid cols-2-eq" style="margin-top:12px" id="bspl-analysis-charts">
-        <div class="panel">
-          <div class="panel-header">
-            <div>
-              <div class="panel-title">Customer revenue mix</div>
-              <div class="panel-sub">Revenue share by customer · filtered</div>
-            </div>
-          </div>
-          <div class="chart-canvas" id="chart-bspl-customer-pie"></div>
-        </div>
-        <div class="panel">
-          <div class="panel-header">
-            <div>
-              <div class="panel-title">Vendor spend mix</div>
-              <div class="panel-sub">Purchase cost share by vendor · filtered</div>
-            </div>
-          </div>
-          <div class="chart-canvas" id="chart-bspl-vendor-pie"></div>
-        </div>
+        <div class="panel"><div class="panel-header"><div><div class="panel-title">Customer revenue mix</div><div class="panel-sub">Revenue share by customer · filtered</div></div></div><div class="chart-canvas" id="chart-bspl-customer-pie"></div></div>
+        <div class="panel"><div class="panel-header"><div><div class="panel-title">Vendor spend mix</div><div class="panel-sub">Purchase cost share by vendor · filtered</div></div></div><div class="chart-canvas" id="chart-bspl-vendor-pie"></div></div>
       </div>
-
-      <!-- Division-wise P&L -->
       <div class="panel" style="margin-top:12px" id="bspl-division-pnl-panel">
-        <div class="panel-header">
-          <div>
-            <div class="panel-title">Division-wise P&L</div>
-            <div class="panel-sub">Each division as a column · filtered (division filter excluded)</div>
-          </div>
-        </div>
-        <div style="overflow-x:auto">
-          <table class="div-pnl-table" id="bspl-division-pnl-table">
-            <thead id="bspl-div-pnl-head"></thead>
-            <tbody id="bspl-div-pnl-body"></tbody>
-          </table>
-        </div>
-
-        <!-- Customer breakdown per division -->
-        <div style="margin-top:20px;padding-top:16px;border-top:1px dashed var(--border-subtle)">
-          <div style="font-family:var(--font-display);font-size:13px;font-weight:600;color:var(--text-primary);margin-bottom:12px">Customer P&L by Division</div>
-          <div id="bspl-customer-div-breakdown"></div>
-        </div>
-
-        <!-- Vendor breakdown per division -->
-        <div style="margin-top:20px;padding-top:16px;border-top:1px dashed var(--border-subtle)">
-          <div style="font-family:var(--font-display);font-size:13px;font-weight:600;color:var(--text-primary);margin-bottom:12px">Vendor P&L by Division</div>
-          <div id="bspl-vendor-div-breakdown"></div>
-        </div>
+        <div class="panel-header"><div><div class="panel-title">Division-wise P&L</div><div class="panel-sub">Each division as a column · filtered (division filter excluded)</div></div></div>
+        <div style="overflow-x:auto"><table class="div-pnl-table" id="bspl-division-pnl-table"><thead id="bspl-div-pnl-head"></thead><tbody id="bspl-div-pnl-body"></tbody></table></div>
+        <div style="margin-top:20px;padding-top:16px;border-top:1px dashed var(--border-subtle)"><div style="font-family:var(--font-display);font-size:13px;font-weight:600;color:var(--text-primary);margin-bottom:12px">Customer P&L by Division</div><div id="bspl-customer-div-breakdown"></div></div>
+        <div style="margin-top:20px;padding-top:16px;border-top:1px dashed var(--border-subtle)"><div style="font-family:var(--font-display);font-size:13px;font-weight:600;color:var(--text-primary);margin-bottom:12px">Vendor P&L by Division</div><div id="bspl-vendor-div-breakdown"></div></div>
       </div>
     </div>
 
-    <!-- INVESTOR PAGE -->
     <div class="page" id="page-investor">
-      <div class="investor-hero">
-        <div class="investor-eyebrow">// For Investors</div>
-        <h1 class="investor-title">Trading momentum,<br/>built for scale.</h1>
-        <p class="investor-sub">Double Click Trading FZE is a UAE-based commodity trading house dealing in recycled rubber, steel, and aluminium. The numbers below represent live, audited trading data — refreshed in real time.</p>
-      </div>
-
+      <div class="investor-hero"><div class="investor-eyebrow">// For Investors</div><h1 class="investor-title">Trading momentum,<br/>built for scale.</h1><p class="investor-sub">Double Click Trading FZE is a UAE-based commodity trading house dealing in recycled rubber, steel, and aluminium. The numbers below represent live trading data — refreshed in real time.</p></div>
       <div class="kpi-grid">
-        <div class="kpi-card" data-color="red">
-          <div class="kpi-label">Total Revenue (YTD)</div>
-          <div class="kpi-value" id="inv-revenue">—</div>
-          <div class="kpi-meta">AED</div>
-        </div>
-        <div class="kpi-card" data-color="pink">
-          <div class="kpi-label">Gross Profit (YTD)</div>
-          <div class="kpi-value" id="inv-gp">—</div>
-          <div class="kpi-meta">AED</div>
-        </div>
-        <div class="kpi-card" data-color="amber">
-          <div class="kpi-label">Deals Completed</div>
-          <div class="kpi-value" id="inv-deals">—</div>
-          <div class="kpi-meta">across all divisions</div>
-        </div>
-        <div class="kpi-card" data-color="green">
-          <div class="kpi-label">Active Customers</div>
-          <div class="kpi-value" id="inv-customers">—</div>
-          <div class="kpi-meta">repeat + new</div>
-        </div>
+        <div class="kpi-card" data-color="red"><div class="kpi-label">Total Revenue (YTD)</div><div class="kpi-value" id="inv-revenue">—</div><div class="kpi-meta">completed deals</div></div>
+        <div class="kpi-card" data-color="pink"><div class="kpi-label">Gross Profit (YTD)</div><div class="kpi-value" id="inv-gp">—</div><div class="kpi-meta">net</div></div>
+        <div class="kpi-card" data-color="amber"><div class="kpi-label">Deals Completed</div><div class="kpi-value" id="inv-deals">—</div><div class="kpi-meta">across all divisions</div></div>
+        <div class="kpi-card" data-color="green"><div class="kpi-label">Active Customers</div><div class="kpi-value" id="inv-customers">—</div><div class="kpi-meta">repeat + new</div></div>
       </div>
-
       <div class="chart-grid cols-2" style="margin-top:12px">
-        <div class="panel">
-          <div class="panel-header">
-            <div>
-              <div class="panel-title">Revenue trajectory</div>
-              <div class="panel-sub">Monthly · the trend that tells the story</div>
-            </div>
-          </div>
-          <div class="chart-canvas" id="chart-inv-trend"></div>
-        </div>
-        <div class="panel">
-          <div class="panel-header">
-            <div>
-              <div class="panel-title">Business mix</div>
-              <div class="panel-sub">Diversified across three divisions</div>
-            </div>
-          </div>
-          <div class="chart-canvas" id="chart-inv-mix"></div>
-        </div>
+        <div class="panel"><div class="panel-header"><div><div class="panel-title">Revenue trajectory</div><div class="panel-sub">Monthly · the trend that tells the story</div></div></div><div class="chart-canvas" id="chart-inv-trend"></div></div>
+        <div class="panel"><div class="panel-header"><div><div class="panel-title">Business mix</div><div class="panel-sub">Diversified across three divisions</div></div></div><div class="chart-canvas" id="chart-inv-mix"></div></div>
       </div>
     </div>
 
-    <!-- FX PAGE (hidden — accessible via #fx in URL) -->
     <div class="page" id="page-fx">
-      <div class="page-header">
-        <div class="page-eyebrow">// Hidden · Internal Only</div>
-        <h1 class="page-title">FX Rates</h1>
-        <p class="page-desc">Daily exchange rates against AED · used internally to monitor FX exposure.</p>
+      <div class="page-header"><div class="page-eyebrow">// Hidden · Internal Only</div><h1 class="page-title">FX Rates</h1><p class="page-desc">Daily exchange rates against AED · used internally to monitor FX exposure.</p></div>
+      <div class="panel"><div class="panel-header"><div><div class="panel-title">GBP · EUR · USD vs AED</div><div class="panel-sub">Daily rates · all currencies your business deals in</div></div></div><div class="chart-canvas large" id="chart-fx"></div></div>
+    </div>
+
+    <div class="page" id="page-admin">
+      <div class="page-header"><div class="page-eyebrow">// root@dc-trading — config terminal</div><h1 class="page-title">Admin Terminal</h1><p class="page-desc">Configure column mappings, number format, and calculation rules. Settings save to this browser and apply instantly.</p></div>
+
+      <div id="adm-lock" class="adm-lock">
+        <div class="adm-lock-card">
+          <div class="adm-lock-icon">🔒</div>
+          <div class="adm-lock-title">Admin access required</div>
+          <input type="password" id="adm-lock-input" class="login-input" placeholder="Admin password"/>
+          <div id="adm-lock-err" class="adm-lock-err">Wrong admin password.</div>
+          <button class="login-btn" id="adm-lock-btn" style="margin-top:10px">Unlock</button>
+        </div>
       </div>
-      <div class="panel">
-        <div class="panel-header">
-          <div>
-            <div class="panel-title">GBP · EUR · USD vs AED</div>
-            <div class="panel-sub">Daily rates · all currencies your business deals in</div>
+
+      <div id="adm-content" style="display:none">
+        <div class="adm-section">
+          <div class="adm-section-title">// 1 — Data Mapping</div>
+          <div class="adm-section-desc">Tell the dashboard which column of your "DC Accounts" sheet feeds each metric. If you rename or move columns, just re-point them here.</div>
+          <div class="adm-grid" id="adm-columns"></div>
+        </div>
+
+        <div class="adm-section">
+          <div class="adm-section-title">// 2 — Display</div>
+          <div class="adm-section-desc">How numbers and the interface present.</div>
+          <div class="adm-grid">
+            <div class="adm-field"><label>Number system</label><select id="adm-numsys"><option value="international">International (K / M / B)</option><option value="indian">Indian (K / Lakh / Crore)</option></select><span class="hint">Indian shows L and Cr suffixes</span></div>
+            <div class="adm-field"><label>Decimal places</label><input type="number" id="adm-decimals" min="0" max="4"/><span class="hint">For abbreviated values (e.g. 8.2M)</span></div>
+            <div class="adm-field"><label>Currency label</label><input type="text" id="adm-currency"/><span class="hint">Prefix shown before money values</span></div>
+            <div class="adm-field"><label>Default theme</label><select id="adm-theme"><option value="dark">Dark</option><option value="light">Light</option></select></div>
+            <div class="adm-field"><label>Default landing page</label><select id="adm-page"><option value="overview">Overview</option><option value="deals">Deals</option><option value="customers">Customers</option><option value="vendors">Vendors</option><option value="bspl">BSPL</option><option value="investor">Investor</option></select></div>
           </div>
         </div>
-        <div class="chart-canvas large" id="chart-fx"></div>
+
+        <div class="adm-section">
+          <div class="adm-section-title">// 3 — Calculations</div>
+          <div class="adm-section-desc">Currency conversion and how profit is computed.</div>
+          <div class="adm-grid">
+            <div class="adm-field"><label>USD → AED rate</label><input type="number" id="adm-usdaed" step="0.0001"/><span class="hint">Used to convert freight (and any USD field)</span></div>
+            <label class="adm-check"><input type="checkbox" id="adm-freight-usd"/> Freight is stored in USD (convert to AED)</label>
+            <div class="adm-field"><label>Net profit calculation</label><select id="adm-netmode"><option value="recompute">Recompute: Revenue − Cost − Freight − Bank − Other</option><option value="gpColumn">Use the GP column from the sheet as-is</option></select><span class="hint">Recompute applies the freight FX fix to the bottom line</span></div>
+            <div class="adm-field"><label>"Completed" status keyword</label><input type="text" id="adm-completed"/><span class="hint">Rows counted as realised revenue</span></div>
+            <div class="adm-field"><label>"Cancelled" status keyword</label><input type="text" id="adm-cancelled"/><span class="hint">Excluded from BSPL by default</span></div>
+            <div class="adm-field"><label>Healthy margin ≥ (%)</label><input type="number" id="adm-margin-hi" step="0.1"/><span class="hint">Green badge threshold</span></div>
+            <div class="adm-field"><label>Caution margin ≥ (%)</label><input type="number" id="adm-margin-lo" step="0.1"/><span class="hint">Amber badge threshold; below = red</span></div>
+          </div>
+        </div>
+
+        <div class="adm-section">
+          <div class="adm-section-title">// 4 — System</div>
+          <div class="adm-section-desc">Refresh cadence and access. (For future scaling.)</div>
+          <div class="adm-grid">
+            <div class="adm-field"><label>Auto-refresh (seconds)</label><input type="number" id="adm-refresh" min="10"/><span class="hint">How often live data re-pulls</span></div>
+            <div class="adm-field"><label>Admin password</label><input type="password" id="adm-adminpass"/><span class="hint">Gate for this terminal</span></div>
+          </div>
+        </div>
+
+        <div class="adm-actions">
+          <button class="filter-btn primary" id="adm-save" style="margin-top:0">Save & Apply</button>
+          <button class="filter-btn" id="adm-reset" style="margin-top:0">Reset to defaults</button>
+          <button class="filter-btn" id="adm-export" style="margin-top:0">Export JSON</button>
+          <label class="filter-btn" style="margin-top:0;cursor:pointer">Import JSON<input type="file" id="adm-import" accept="application/json" style="display:none"/></label>
+          <span id="adm-status" class="adm-status"></span>
+        </div>
       </div>
     </div>
 
   </main>
 
-  <footer class="app-footer">
-    <div class="app-footer-text">DC Trading FZE · Live Dashboard · <span id="footer-time">—</span></div>
-  </footer>
+  <footer class="app-footer"><div class="app-footer-text">DC Trading FZE · Live Dashboard · <span id="footer-time">—</span></div></footer>
 </div>
 
-<!-- DEAL DETAIL MODAL -->
 <div class="modal-overlay" id="deal-modal">
   <div class="modal">
-    <div class="modal-header">
-      <div>
-        <div class="modal-title" id="modal-title">Deal</div>
-        <div class="modal-sub" id="modal-sub">—</div>
-      </div>
-      <button class="modal-close" id="modal-close">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-      </button>
-    </div>
+    <div class="modal-header"><div><div class="modal-title" id="modal-title">Deal</div><div class="modal-sub" id="modal-sub">—</div></div><button class="modal-close" id="modal-close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
     <div class="modal-body" id="modal-body"></div>
   </div>
 </div>
-
-<!-- ═══════════════════════════════════════════════════════════════
-     APPLICATION JAVASCRIPT
-     ═══════════════════════════════════════════════════════════════ -->
 <script>
-/* ───────────────────────────────────────────────────────────────
-   CONFIG — EDIT THESE if you need to change credentials
-   ─────────────────────────────────────────────────────────────── */
+/* ─── CONFIG (credentials) ─── */
 const CONFIG = {
   CLIENT_ID: '753719534618-68befljcrte3g5vh0q5732erpqfnacqu.apps.googleusercontent.com',
   SHEET_ID: '1oPrMkjFcyf7-f_HzCJTCeBUG0HsqZXPoTWqMeDJ7y2k',
   SCOPES: 'https://www.googleapis.com/auth/spreadsheets.readonly',
-  PASSWORD: 'doubleclick2025',   // ← CHANGE THIS to whatever you want
-  REFRESH_MS: 60000,             // refresh every 60 seconds
-  SHEETS: {
-    DC_ACCOUNTS: 'DC Accounts',
-    PURCHASE: 'PURCHASE',
-    SALES: 'SALES',
-    BANK: 'BANK',
-    FX: 'EXCHANGE RATE',
-    LIST: 'LIST'
+  PASSWORD: 'doubleclick2025',
+  SHEETS: { DC_ACCOUNTS: 'DC Accounts', PURCHASE: 'PURCHASE', SALES: 'SALES', BANK: 'BANK', FX: 'EXCHANGE RATE', LIST: 'LIST' }
+};
+
+/* ─── SETTINGS (admin-configurable, persisted in localStorage) ─── */
+const DEFAULT_SETTINGS = {
+  columns: {
+    deal: 'DEAL', invoiceNo: 'INV NO', invoiceDate: 'INV DT', division: 'DIVISON',
+    customer: 'CUSTOMER', vendor: 'VENDOR', salesOrder: 'SO No.', purchaseOrder: 'PO No.',
+    quantity: 'Loaded_Qty', revenue: 'SALES VALUE AED', cost: 'PURCHASE COST AED', gp: 'GP',
+    freight: 'Freight', bankCharges: 'TOTAL BANK CHARGES (AED)', otherCharges: 'Other Charges',
+    purchaseCurrency: 'FRCU_PUR', status: 'STATUS'
+  },
+  numberSystem: 'international',
+  decimals: 1,
+  currencyLabel: 'AED',
+  defaultTheme: 'dark',
+  defaultPage: 'overview',
+  freight: { inUSD: true, usdToAed: 3.6725 },
+  netProfitMode: 'recompute',
+  completedStatus: 'COMPLETED',
+  cancelledStatus: 'CANCELLED',
+  marginThresholds: { healthy: 5, caution: 2 },
+  refreshSeconds: 60,
+  adminPassword: 'admin2025'
+};
+
+const COLUMN_FIELDS = [
+  ['deal','Deal ID'],['invoiceNo','Invoice No.'],['invoiceDate','Invoice Date'],['division','Division'],
+  ['customer','Customer'],['vendor','Vendor'],['salesOrder','Sales Order No.'],['purchaseOrder','Purchase Order No.'],
+  ['quantity','Quantity (MT)'],['revenue','Revenue / Sales Value'],['cost','Purchase Cost'],['gp','Gross Profit (sheet)'],
+  ['freight','Freight'],['bankCharges','Bank Charges'],['otherCharges','Other Charges'],
+  ['purchaseCurrency','Purchase Currency'],['status','Status']
+];
+
+function deepMerge(base, over) {
+  for (const k in over) {
+    if (over[k] && typeof over[k] === 'object' && !Array.isArray(over[k])) base[k] = deepMerge(base[k] || {}, over[k]);
+    else base[k] = over[k];
   }
-};
+  return base;
+}
+function clone(o) { return JSON.parse(JSON.stringify(o)); }
+function loadSettings() {
+  try { return deepMerge(clone(DEFAULT_SETTINGS), JSON.parse(localStorage.getItem('dc-settings') || '{}')); }
+  catch (e) { return clone(DEFAULT_SETTINGS); }
+}
+let SETTINGS = loadSettings();
+function saveSettings() { localStorage.setItem('dc-settings', JSON.stringify(SETTINGS)); }
 
-/* ───────────────────────────────────────────────────────────────
-   STATE
-   ─────────────────────────────────────────────────────────────── */
+/* ─── STATE ─── */
 const STATE = {
-  token: null,
-  tokenClient: null,
+  token: null, tokenClient: null,
   data: { dc: [], purchase: [], sales: [], bank: [], fx: [], list: [] },
-  charts: {},
-  currentPage: 'overview',
-  refreshTimer: null,
-  filters: { deal: {}, bspl: {} }
+  headers: {},
+  charts: {}, currentPage: 'overview', refreshTimer: null
 };
 
-/* ───────────────────────────────────────────────────────────────
-   UTILITIES
-   ─────────────────────────────────────────────────────────────── */
+/* ─── UTILITIES ─── */
 const $ = (id) => document.getElementById(id);
 const $$ = (sel) => document.querySelectorAll(sel);
 
@@ -1543,82 +640,71 @@ function fmtNum(n, decimals = 0) {
   if (n === null || n === undefined || isNaN(n)) return '—';
   return Number(n).toLocaleString('en-US', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
 }
-
 function fmtAED(n) {
   if (n === null || n === undefined || isNaN(n)) return '—';
+  const d = (SETTINGS.decimals != null ? SETTINGS.decimals : 1);
   const abs = Math.abs(n);
-  if (abs >= 1e6) return (n / 1e6).toFixed(2) + 'M';
-  if (abs >= 1e3) return (n / 1e3).toFixed(1) + 'K';
-  return fmtNum(n, 0);
+  if (SETTINGS.numberSystem === 'indian') {
+    if (abs >= 1e7) return (n / 1e7).toFixed(d) + ' Cr';
+    if (abs >= 1e5) return (n / 1e5).toFixed(d) + ' L';
+    if (abs >= 1e3) return (n / 1e3).toFixed(d) + ' K';
+    return Number(n).toLocaleString('en-IN', { maximumFractionDigits: 0 });
+  }
+  if (abs >= 1e9) return (n / 1e9).toFixed(d) + 'B';
+  if (abs >= 1e6) return (n / 1e6).toFixed(d) + 'M';
+  if (abs >= 1e3) return (n / 1e3).toFixed(d) + 'K';
+  return Number(n).toLocaleString('en-US', { maximumFractionDigits: 0 });
 }
-
-function fmtPct(n) {
-  if (n === null || n === undefined || isNaN(n)) return '—';
-  return (n * 100).toFixed(1) + '%';
-}
-
-function parseDate(d) {
-  if (!d) return null;
-  if (d instanceof Date) return d;
-  // Google Sheets returns dates as strings, often like "2025-08-23"
-  const parsed = new Date(d);
-  return isNaN(parsed.getTime()) ? null : parsed;
-}
-
-function fmtDate(d) {
-  const date = parseDate(d);
-  if (!date) return '—';
-  return date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: '2-digit' });
-}
-
+function fmtPct(n) { if (n === null || n === undefined || isNaN(n)) return '—'; return (n * 100).toFixed(1) + '%'; }
+function parseDate(d) { if (!d) return null; if (d instanceof Date) return d; const p = new Date(d); return isNaN(p.getTime()) ? null : p; }
+function fmtDate(d) { const date = parseDate(d); if (!date) return '—'; return date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: '2-digit' }); }
 function toNum(v) {
   if (v === null || v === undefined || v === '') return 0;
   if (typeof v === 'number') return v;
-  // Strip currency symbols, commas, parens (negatives)
   const s = String(v).trim().replace(/[$£€,AED ]/g, '');
   if (s.startsWith('(') && s.endsWith(')')) return -parseFloat(s.slice(1, -1)) || 0;
   return parseFloat(s) || 0;
 }
+function debounce(fn, wait) { let t; return function (...a) { clearTimeout(t); t = setTimeout(() => fn.apply(this, a), wait); }; }
+function escapeHtml(s) { return String(s).replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m])); }
 
-function debounce(fn, wait) {
-  let t;
-  return function (...args) {
-    clearTimeout(t);
-    t = setTimeout(() => fn.apply(this, args), wait);
-  };
+/* ─── CONFIGURABLE DATA ACCESSORS ─── */
+function col(key) { return SETTINGS.columns[key]; }
+function rawVal(row, key) { return row ? row[SETTINGS.columns[key]] : undefined; }
+function num(row, key) { return toNum(row ? row[SETTINGS.columns[key]] : 0); }
+function CUR() { return SETTINGS.currencyLabel || 'AED'; }
+function money(n) { return CUR() + ' ' + fmtAED(n); }
+function freightAED(row) {
+  const f = toNum(rawVal(row, 'freight'));
+  return SETTINGS.freight.inUSD ? f * (SETTINGS.freight.usdToAed || 1) : f;
 }
+function dealGP(row) {
+  if (SETTINGS.netProfitMode === 'gpColumn') return toNum(rawVal(row, 'gp'));
+  return num(row, 'revenue') - num(row, 'cost') - freightAED(row) - num(row, 'bankCharges') - num(row, 'otherCharges');
+}
+function statusUpper(row) { return String(rawVal(row, 'status') || '').toUpperCase(); }
+function isCompleted(row) { return statusUpper(row) === String(SETTINGS.completedStatus || '').toUpperCase(); }
+function isCancelled(row) { return statusUpper(row) === String(SETTINGS.cancelledStatus || '').toUpperCase(); }
 
 function animateCount(el, target, decimals = 0, suffix = '', prefix = '') {
-  const duration = 900;
-  const start = performance.now();
-  const startVal = 0;
+  const duration = 900, start = performance.now();
   function tick(now) {
     const t = Math.min(1, (now - start) / duration);
     const eased = 1 - Math.pow(1 - t, 3);
-    const val = startVal + (target - startVal) * eased;
-    el.textContent = prefix + fmtAED(val) + suffix;
-    if (t < 1) requestAnimationFrame(tick);
-    else el.textContent = prefix + fmtAED(target) + suffix;
+    el.textContent = prefix + fmtAED(target * eased) + suffix;
+    if (t < 1) requestAnimationFrame(tick); else el.textContent = prefix + fmtAED(target) + suffix;
   }
   requestAnimationFrame(tick);
 }
 
-/* ───────────────────────────────────────────────────────────────
-   THEME MANAGEMENT
-   ─────────────────────────────────────────────────────────────── */
+/* ─── THEME ─── */
 function setTheme(theme) {
   document.documentElement.setAttribute('data-theme', theme);
   localStorage.setItem('dc-theme', theme);
   $('icon-moon').style.display = theme === 'dark' ? 'block' : 'none';
   $('icon-sun').style.display = theme === 'light' ? 'block' : 'none';
-  // Re-render all charts with new theme
-  Object.values(STATE.charts).forEach(c => c && c.resize && c.resize());
-  // Force chart re-render with new colors
-  if (STATE.data.dc.length) {
-    setTimeout(() => renderCurrentPage(), 50);
-  }
+  if (STATE.data.dc.length) setTimeout(() => renderCurrentPage(), 50);
 }
-
 function getChartTheme() {
   const isDark = document.documentElement.getAttribute('data-theme') !== 'light';
   return {
@@ -1631,115 +717,68 @@ function getChartTheme() {
     tooltipText: isDark ? '#ffffff' : '#0a0a0f'
   };
 }
-
 $('theme-toggle').addEventListener('click', () => {
-  const current = document.documentElement.getAttribute('data-theme') || 'dark';
-  setTheme(current === 'dark' ? 'light' : 'dark');
+  const cur = document.documentElement.getAttribute('data-theme') || 'dark';
+  setTheme(cur === 'dark' ? 'light' : 'dark');
 });
-
-// Initialize theme from storage
-const savedTheme = localStorage.getItem('dc-theme') || 'dark';
-setTheme(savedTheme);
-
-/* ───────────────────────────────────────────────────────────────
-   LOGIN FLOW
-   ─────────────────────────────────────────────────────────────── */
+setTheme(localStorage.getItem('dc-theme') || SETTINGS.defaultTheme || 'dark');
+/* ─── LOGIN ─── */
 function checkPassword() {
-  const input = $('password-input').value;
-  if (input === CONFIG.PASSWORD) {
+  if ($('password-input').value === CONFIG.PASSWORD) {
     sessionStorage.setItem('dc-pwd-ok', '1');
     $('password-input').disabled = true;
-    $('password-btn').textContent = '✓ Verified';
-    $('password-btn').disabled = true;
-    $('google-btn').disabled = false;
-    $('google-btn').style.opacity = '1';
-    $('google-btn').style.cursor = 'pointer';
-    $('google-btn').textContent = '';
-    $('google-btn').insertAdjacentHTML('beforeend',
-      '<svg viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg> Sign in with Google'
-    );
+    $('password-btn').textContent = '✓ Verified'; $('password-btn').disabled = true;
+    const g = $('google-btn'); g.disabled = false; g.style.opacity = '1'; g.style.cursor = 'pointer';
+    g.innerHTML = '<svg viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg> Sign in with Google';
     $('login-error').classList.remove('show');
-  } else {
-    $('login-error').classList.add('show');
-    $('password-input').value = '';
-  }
+  } else { $('login-error').classList.add('show'); $('password-input').value = ''; }
 }
-
 $('password-btn').addEventListener('click', checkPassword);
-$('password-input').addEventListener('keydown', (e) => {
-  if (e.key === 'Enter') checkPassword();
-});
-
+$('password-input').addEventListener('keydown', e => { if (e.key === 'Enter') checkPassword(); });
 $('google-btn').addEventListener('click', () => {
-  if (!STATE.tokenClient) {
-    alert('Google sign-in is still loading. Try again in 2 seconds.');
-    return;
-  }
+  if (!STATE.tokenClient) { alert('Google sign-in is still loading. Try again in 2 seconds.'); return; }
   STATE.tokenClient.requestAccessToken();
 });
 
-/* ───────────────────────────────────────────────────────────────
-   GOOGLE OAUTH SETUP
-   ─────────────────────────────────────────────────────────────── */
+/* ─── GOOGLE OAUTH ─── */
 function initGoogleAuth() {
-  if (typeof google === 'undefined') {
-    setTimeout(initGoogleAuth, 200);
-    return;
-  }
+  if (typeof google === 'undefined') { setTimeout(initGoogleAuth, 200); return; }
   STATE.tokenClient = google.accounts.oauth2.initTokenClient({
-    client_id: CONFIG.CLIENT_ID,
-    scope: CONFIG.SCOPES,
+    client_id: CONFIG.CLIENT_ID, scope: CONFIG.SCOPES,
     callback: async (response) => {
-      if (response.error) {
-        alert('Google sign-in failed: ' + response.error);
-        return;
-      }
+      if (response.error) { alert('Google sign-in failed: ' + response.error); return; }
       STATE.token = response.access_token;
       sessionStorage.setItem('dc-token', response.access_token);
       await launchApp();
     }
   });
 }
-
 window.addEventListener('load', () => {
   initGoogleAuth();
-  // Auto-resume if we already had a session
   const pwdOk = sessionStorage.getItem('dc-pwd-ok');
   const savedToken = sessionStorage.getItem('dc-token');
   if (pwdOk && savedToken) {
     STATE.token = savedToken;
-    launchApp().catch(() => {
-      // Token expired — clear and start over
-      sessionStorage.removeItem('dc-token');
-      STATE.token = null;
-    });
+    launchApp().catch(() => { sessionStorage.removeItem('dc-token'); STATE.token = null; });
   }
 });
 
-/* ───────────────────────────────────────────────────────────────
-   APP LAUNCH
-   ─────────────────────────────────────────────────────────────── */
+/* ─── APP LAUNCH ─── */
 async function launchApp() {
   $('login-screen').classList.add('hidden');
   $('loading-overlay').style.display = 'flex';
   $('app').classList.add('visible');
-
   try {
     await fetchData();
     $('loading-overlay').classList.add('hide');
     setTimeout(() => $('loading-overlay').style.display = 'none', 400);
-
-    setupNavigation();
-    setupFilters();
-    setupModal();
-    renderAllPages();
-    startAutoRefresh();
-    updateFooterTime();
-
-    // Check URL hash for hidden FX page
-    if (window.location.hash === '#fx') {
-      switchPage('fx');
-    }
+    setupNavigation(); setupFilters(); setupModal(); setupAdmin();
+    $('status-text').textContent = 'Live · ' + SETTINGS.refreshSeconds + 's';
+    renderAllPages(); startAutoRefresh(); updateFooterTime();
+    const hash = window.location.hash;
+    if (hash === '#fx') switchPage('fx');
+    else if (hash === '#admin') switchPage('admin');
+    else if (SETTINGS.defaultPage && SETTINGS.defaultPage !== 'overview') switchPage(SETTINGS.defaultPage);
   } catch (e) {
     console.error(e);
     $('loading-text').textContent = 'Error: ' + (e.message || 'Could not load data');
@@ -1747,37 +786,18 @@ async function launchApp() {
   }
 }
 
-/* ───────────────────────────────────────────────────────────────
-   DATA FETCHING — Google Sheets API
-   ─────────────────────────────────────────────────────────────── */
+/* ─── DATA FETCH ─── */
 async function fetchData() {
-  const ranges = [
-    CONFIG.SHEETS.DC_ACCOUNTS,
-    CONFIG.SHEETS.PURCHASE,
-    CONFIG.SHEETS.SALES,
-    CONFIG.SHEETS.BANK,
-    CONFIG.SHEETS.FX,
-    CONFIG.SHEETS.LIST
-  ];
+  const ranges = [CONFIG.SHEETS.DC_ACCOUNTS, CONFIG.SHEETS.PURCHASE, CONFIG.SHEETS.SALES, CONFIG.SHEETS.BANK, CONFIG.SHEETS.FX, CONFIG.SHEETS.LIST];
   const rangesParam = ranges.map(r => 'ranges=' + encodeURIComponent("'" + r + "'")).join('&');
   const url = `https://sheets.googleapis.com/v4/spreadsheets/${CONFIG.SHEET_ID}/values:batchGet?${rangesParam}&valueRenderOption=UNFORMATTED_VALUE&dateTimeRenderOption=FORMATTED_STRING`;
-
-  const res = await fetch(url, {
-    headers: { 'Authorization': 'Bearer ' + STATE.token }
-  });
-
+  const res = await fetch(url, { headers: { 'Authorization': 'Bearer ' + STATE.token } });
   if (!res.ok) {
-    if (res.status === 401 || res.status === 403) {
-      sessionStorage.removeItem('dc-token');
-      throw new Error('Session expired. Please sign in again.');
-    }
+    if (res.status === 401 || res.status === 403) { sessionStorage.removeItem('dc-token'); throw new Error('Session expired. Please sign in again.'); }
     throw new Error('Sheets API returned ' + res.status);
   }
-
   const json = await res.json();
   const sheets = json.valueRanges || [];
-
-  // Parse each sheet — sheets[i].values is an array of rows
   STATE.data.dc = parseSheet(sheets[0]?.values || [], 'dc');
   STATE.data.purchase = parseSheet(sheets[1]?.values || [], 'purchase');
   STATE.data.sales = parseSheet(sheets[2]?.values || [], 'sales');
@@ -1785,48 +805,31 @@ async function fetchData() {
   STATE.data.fx = parseSheet(sheets[4]?.values || [], 'fx');
   STATE.data.list = sheets[5]?.values || [];
 }
-
 function parseSheet(rows, type) {
   if (!rows.length) return [];
   const headers = rows[0].map(h => String(h || '').replace(/\n/g, ' ').trim());
-  return rows.slice(1).map(row => {
-    const obj = {};
-    headers.forEach((h, i) => { obj[h] = row[i]; });
-    return obj;
-  }).filter(o => {
-    // Filter out empty rows
-    return Object.values(o).some(v => v !== '' && v !== null && v !== undefined);
-  });
+  if (type) STATE.headers[type] = headers;
+  return rows.slice(1).map(row => { const o = {}; headers.forEach((h, i) => { o[h] = row[i]; }); return o; })
+    .filter(o => Object.values(o).some(v => v !== '' && v !== null && v !== undefined));
 }
 
-/* ───────────────────────────────────────────────────────────────
-   NAVIGATION
-   ─────────────────────────────────────────────────────────────── */
+/* ─── NAVIGATION ─── */
 function setupNavigation() {
-  $$('.nav-tab').forEach(tab => {
-    tab.addEventListener('click', () => switchPage(tab.dataset.page));
-  });
+  $$('.nav-tab').forEach(tab => tab.addEventListener('click', () => switchPage(tab.dataset.page)));
   $('refresh-btn').addEventListener('click', async () => {
     $('refresh-btn').style.animation = 'spin 0.8s linear';
-    await fetchData();
-    renderAllPages();
+    await fetchData(); renderAllPages(); updateFooterTime();
     setTimeout(() => $('refresh-btn').style.animation = '', 800);
   });
-  $('logout-btn').addEventListener('click', () => {
-    sessionStorage.clear();
-    location.reload();
-  });
+  $('logout-btn').addEventListener('click', () => { sessionStorage.clear(); location.reload(); });
 }
-
 function switchPage(page) {
   STATE.currentPage = page;
   $$('.page').forEach(p => p.classList.remove('active'));
   $('page-' + page)?.classList.add('active');
   $$('.nav-tab').forEach(t => t.classList.toggle('active', t.dataset.page === page));
-  // Re-render the page to ensure charts resize correctly
   setTimeout(() => renderCurrentPage(), 50);
 }
-
 function renderCurrentPage() {
   switch (STATE.currentPage) {
     case 'overview': renderOverview(); break;
@@ -1836,537 +839,243 @@ function renderCurrentPage() {
     case 'bspl': renderBSPL(); break;
     case 'investor': renderInvestor(); break;
     case 'fx': renderFX(); break;
+    case 'admin': renderAdmin(); break;
   }
 }
-
 function renderAllPages() {
   populateFilterOptions();
-  renderOverview();
-  renderDeals();
-  renderCustomers();
-  renderVendors();
-  renderBSPL();
-  renderInvestor();
-  renderFX();
+  renderOverview(); renderDeals(); renderCustomers(); renderVendors(); renderBSPL(); renderInvestor(); renderFX(); renderAdmin();
 }
-
-/* ───────────────────────────────────────────────────────────────
-   AUTO-REFRESH
-   ─────────────────────────────────────────────────────────────── */
 function startAutoRefresh() {
   if (STATE.refreshTimer) clearInterval(STATE.refreshTimer);
   STATE.refreshTimer = setInterval(async () => {
-    try {
-      await fetchData();
-      renderAllPages();
-      updateFooterTime();
-    } catch (e) {
-      console.warn('Refresh failed:', e);
-    }
-  }, CONFIG.REFRESH_MS);
+    try { await fetchData(); renderAllPages(); updateFooterTime(); } catch (e) { console.warn('Refresh failed:', e); }
+  }, (SETTINGS.refreshSeconds || 60) * 1000);
 }
+function updateFooterTime() { $('footer-time').textContent = 'Last refresh: ' + new Date().toLocaleTimeString('en-GB'); }
 
-function updateFooterTime() {
-  const now = new Date();
-  $('footer-time').textContent = 'Last refresh: ' + now.toLocaleTimeString('en-GB');
-}
-
-/* ───────────────────────────────────────────────────────────────
-   FILTER POPULATION
-   ─────────────────────────────────────────────────────────────── */
+/* ─── FILTER POPULATION ─── */
 function populateFilterOptions() {
-  const divisions = [...new Set(STATE.data.dc.map(r => r['DIVISON']).filter(Boolean))].sort();
-  const customers = [...new Set(STATE.data.dc.map(r => r['CUSTOMER']).filter(Boolean))].sort();
-  const vendors = [...new Set(STATE.data.dc.map(r => r['VENDOR']).filter(Boolean))].sort();
-  const statuses = [...new Set(STATE.data.dc.map(r => r['STATUS']).filter(Boolean))].sort();
-
+  const divisions = [...new Set(STATE.data.dc.map(r => rawVal(r, 'division')).filter(Boolean))].sort();
+  const customers = [...new Set(STATE.data.dc.map(r => rawVal(r, 'customer')).filter(Boolean))].sort();
+  const vendors = [...new Set(STATE.data.dc.map(r => rawVal(r, 'vendor')).filter(Boolean))].sort();
+  const statuses = [...new Set(STATE.data.dc.map(r => rawVal(r, 'status')).filter(Boolean))].sort();
   const fillSelect = (id, items) => {
-    const sel = $(id);
-    if (!sel) return;
-    const current = sel.value;
+    const sel = $(id); if (!sel) return; const current = sel.value;
     sel.innerHTML = '<option value="">All</option>' + items.map(i => `<option value="${escapeHtml(i)}">${escapeHtml(i)}</option>`).join('');
     sel.value = current;
   };
-
-  fillSelect('deal-division', divisions);
-  fillSelect('deal-status', statuses);
-  fillSelect('deal-customer', customers);
-  fillSelect('deal-vendor', vendors);
-  fillSelect('bspl-division', divisions);
-  fillSelect('bspl-customer', customers);
-  fillSelect('bspl-vendor', vendors);
-
-  // Build multi-select for BSPL status
+  fillSelect('deal-division', divisions); fillSelect('deal-status', statuses);
+  fillSelect('deal-customer', customers); fillSelect('deal-vendor', vendors);
+  fillSelect('bspl-division', divisions); fillSelect('bspl-customer', customers); fillSelect('bspl-vendor', vendors);
   const dropdown = $('bspl-status-dropdown');
   if (dropdown) {
     const currentChecked = Array.from(dropdown.querySelectorAll('input:checked')).map(cb => cb.value);
-    dropdown.innerHTML = statuses.map(s => `
-      <label class="ms-option${currentChecked.includes(s) ? ' checked' : ''}">
-        <input type="checkbox" value="${escapeHtml(s)}"${currentChecked.includes(s) ? ' checked' : ''}/>
-        ${escapeHtml(s)}
-      </label>
-    `).join('');
+    dropdown.innerHTML = statuses.map(s => `<label class="ms-option${currentChecked.includes(s) ? ' checked' : ''}"><input type="checkbox" value="${escapeHtml(s)}"${currentChecked.includes(s) ? ' checked' : ''}/> ${escapeHtml(s)}</label>`).join('');
     dropdown.querySelectorAll('input[type=checkbox]').forEach(cb => {
-      cb.addEventListener('change', () => {
-        cb.closest('.ms-option').classList.toggle('checked', cb.checked);
-        updateBsplStatusLabel();
-        renderBSPL();
-      });
+      cb.addEventListener('change', () => { cb.closest('.ms-option').classList.toggle('checked', cb.checked); updateBsplStatusLabel(); renderBSPL(); });
     });
     updateBsplStatusLabel();
   }
 }
 
-function escapeHtml(s) {
-  return String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
-}
-
-/* ───────────────────────────────────────────────────────────────
-   FILTER WIRING
-   ─────────────────────────────────────────────────────────────── */
+/* ─── FILTER WIRING ─── */
 function updateBsplStatusLabel() {
-  const checked = getBsplSelectedStatuses();
-  const btn = $('bspl-status-btn');
-  if (!btn) return;
+  const checked = getBsplSelectedStatuses(); const btn = $('bspl-status-btn'); if (!btn) return;
   if (checked.length === 0) btn.innerHTML = 'All statuses <span class="ms-arrow">▾</span>';
   else if (checked.length === 1) btn.innerHTML = `${escapeHtml(checked[0])} <span class="ms-arrow">▾</span>`;
   else btn.innerHTML = `${checked.length} selected <span class="ms-arrow">▾</span>`;
   btn.classList.toggle('active', checked.length > 0);
 }
-
 function setupFilters() {
-  // Deals — include new date inputs
-  ['deal-search', 'deal-division', 'deal-status', 'deal-customer', 'deal-vendor', 'deal-from', 'deal-to'].forEach(id => {
-    $(id).addEventListener('input', debounce(renderDeals, 200));
-  });
-  $('deal-reset').addEventListener('click', () => {
-    ['deal-search', 'deal-division', 'deal-status', 'deal-customer', 'deal-vendor', 'deal-from', 'deal-to'].forEach(id => $(id).value = '');
-    renderDeals();
-  });
-
-  // BSPL
-  ['bspl-from', 'bspl-to', 'bspl-division', 'bspl-customer', 'bspl-vendor'].forEach(id => {
-    $(id).addEventListener('input', debounce(renderBSPL, 200));
-  });
+  ['deal-search', 'deal-division', 'deal-status', 'deal-customer', 'deal-vendor', 'deal-from', 'deal-to'].forEach(id => $(id).addEventListener('input', debounce(renderDeals, 200)));
+  $('deal-reset').addEventListener('click', () => { ['deal-search', 'deal-division', 'deal-status', 'deal-customer', 'deal-vendor', 'deal-from', 'deal-to'].forEach(id => $(id).value = ''); renderDeals(); });
+  ['bspl-from', 'bspl-to', 'bspl-division', 'bspl-customer', 'bspl-vendor'].forEach(id => $(id).addEventListener('input', debounce(renderBSPL, 200)));
   $('bspl-reset').addEventListener('click', () => {
     ['bspl-from', 'bspl-to', 'bspl-division', 'bspl-customer', 'bspl-vendor'].forEach(id => $(id).value = '');
-    // Uncheck all status checkboxes
-    document.querySelectorAll('#bspl-status-dropdown input[type=checkbox]').forEach(cb => {
-      cb.checked = false;
-      cb.closest('.ms-option').classList.remove('checked');
-    });
-    updateBsplStatusLabel();
-    renderBSPL();
+    document.querySelectorAll('#bspl-status-dropdown input[type=checkbox]').forEach(cb => { cb.checked = false; cb.closest('.ms-option').classList.remove('checked'); });
+    updateBsplStatusLabel(); renderBSPL();
   });
-
-  // Multi-select toggle for BSPL status
-  const statusBtn = $('bspl-status-btn');
-  const statusDropdown = $('bspl-status-dropdown');
+  const statusBtn = $('bspl-status-btn'), statusDropdown = $('bspl-status-dropdown');
   if (statusBtn && statusDropdown) {
-    statusBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const isOpen = statusDropdown.classList.toggle('open');
-      statusBtn.classList.toggle('open', isOpen);
-    });
-    document.addEventListener('click', (e) => {
-      if (!$('bspl-status-wrap').contains(e.target)) {
-        statusDropdown.classList.remove('open');
-        statusBtn.classList.remove('open');
-      }
-    });
+    statusBtn.addEventListener('click', e => { e.stopPropagation(); const open = statusDropdown.classList.toggle('open'); statusBtn.classList.toggle('open', open); });
+    document.addEventListener('click', e => { if (!$('bspl-status-wrap').contains(e.target)) { statusDropdown.classList.remove('open'); statusBtn.classList.remove('open'); } });
   }
 }
-
-/* ───────────────────────────────────────────────────────────────
-   OVERVIEW PAGE
-   ─────────────────────────────────────────────────────────────── */
+/* ─── OVERVIEW ─── */
 function renderOverview() {
-  const completed = STATE.data.dc.filter(r => String(r['STATUS'] || '').toUpperCase() === 'COMPLETED');
-  const totalRevenue = completed.reduce((s, r) => s + toNum(r['SALES VALUE AED']), 0);
-  const totalGP = completed.reduce((s, r) => s + toNum(r['GP']), 0);
+  const completed = STATE.data.dc.filter(isCompleted);
+  const totalRevenue = completed.reduce((s, r) => s + num(r, 'revenue'), 0);
+  const totalGP = completed.reduce((s, r) => s + dealGP(r), 0);
   const margin = totalRevenue > 0 ? totalGP / totalRevenue : 0;
-
-  animateCount($('kpi-revenue'), totalRevenue, 0, '', 'AED ');
-  animateCount($('kpi-gp'), totalGP, 0, '', 'AED ');
+  animateCount($('kpi-revenue'), totalRevenue, 0, '', CUR() + ' ');
+  animateCount($('kpi-gp'), totalGP, 0, '', CUR() + ' ');
   $('kpi-margin').textContent = fmtPct(margin);
   animateCount($('kpi-deals'), STATE.data.dc.length);
-
-  // Margin health
-  const marginEl = $('kpi-margin-meta');
-  if (margin > 0.05) marginEl.innerHTML = '<span class="up">▲ Healthy zone</span>';
-  else if (margin > 0.02) marginEl.innerHTML = '<span class="neutral">→ Caution</span>';
-  else marginEl.innerHTML = '<span class="down">▼ Below target</span>';
-
-  // Deals breakdown
+  const hi = (SETTINGS.marginThresholds.healthy || 5) / 100, lo = (SETTINGS.marginThresholds.caution || 2) / 100;
+  const me = $('kpi-margin-meta');
+  if (margin > hi) me.innerHTML = '<span class="up">▲ Healthy zone</span>';
+  else if (margin > lo) me.innerHTML = '<span class="neutral">→ Caution</span>';
+  else me.innerHTML = '<span class="down">▼ Below target</span>';
   const byStatus = {};
-  STATE.data.dc.forEach(r => {
-    const s = String(r['STATUS'] || 'UNKNOWN').toUpperCase();
-    byStatus[s] = (byStatus[s] || 0) + 1;
-  });
-  const dealParts = Object.entries(byStatus).slice(0, 3).map(([k, v]) => `${v} ${k.toLowerCase()}`).join(' · ');
-  $('kpi-deals-meta').textContent = dealParts;
-
-  renderMonthlyChart(completed);
-  renderDivisionChart(completed);
-  renderTopCustomersChart(completed);
-  renderStatusChart(byStatus);
+  STATE.data.dc.forEach(r => { const s = statusUpper(r) || 'UNKNOWN'; byStatus[s] = (byStatus[s] || 0) + 1; });
+  $('kpi-deals-meta').textContent = Object.entries(byStatus).slice(0, 3).map(([k, v]) => `${v} ${k.toLowerCase()}`).join(' · ');
+  renderMonthlyChart(completed); renderDivisionChart(completed); renderTopCustomersChart(completed); renderStatusChart(byStatus);
 }
-
 function renderMonthlyChart(deals) {
-  const t = getChartTheme();
-  const monthly = {};
+  const t = getChartTheme(); const monthly = {};
   deals.forEach(d => {
-    const date = parseDate(d['INV DT']);
-    if (!date) return;
+    const date = parseDate(rawVal(d, 'invoiceDate')); if (!date) return;
     const key = date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, '0');
     if (!monthly[key]) monthly[key] = { rev: 0, gp: 0 };
-    monthly[key].rev += toNum(d['SALES VALUE AED']);
-    monthly[key].gp += toNum(d['GP']);
+    monthly[key].rev += num(d, 'revenue'); monthly[key].gp += dealGP(d);
   });
   const keys = Object.keys(monthly).sort();
-  const labels = keys.map(k => {
-    const [y, m] = k.split('-');
-    return new Date(y, m - 1).toLocaleDateString('en', { month: 'short', year: '2-digit' });
-  });
-  const revData = keys.map(k => monthly[k].rev);
-  const gpData = keys.map(k => monthly[k].gp);
-
+  const labels = keys.map(k => { const [y, m] = k.split('-'); return new Date(y, m - 1).toLocaleDateString('en', { month: 'short', year: '2-digit' }); });
   initChart('chart-monthly', {
-    backgroundColor: 'transparent',
-    grid: { left: 50, right: 50, top: 30, bottom: 30 },
-    tooltip: {
-      trigger: 'axis',
-      backgroundColor: t.tooltipBg,
-      borderColor: t.tooltipBorder,
-      borderWidth: 1,
-      textStyle: { color: t.tooltipText, fontFamily: 'DM Sans' },
-      formatter: (params) => {
-        let s = `<div style="font-weight:600;margin-bottom:6px">${params[0].axisValue}</div>`;
-        params.forEach(p => {
-          s += `<div style="display:flex;gap:12px;justify-content:space-between;font-size:12px;margin:2px 0"><span>${p.marker} ${p.seriesName}</span><span style="font-family:JetBrains Mono;font-weight:600">AED ${fmtAED(p.value)}</span></div>`;
-        });
-        return s;
-      }
-    },
+    backgroundColor: 'transparent', grid: { left: 50, right: 50, top: 30, bottom: 30 },
+    tooltip: { trigger: 'axis', backgroundColor: t.tooltipBg, borderColor: t.tooltipBorder, borderWidth: 1, textStyle: { color: t.tooltipText, fontFamily: 'DM Sans' },
+      formatter: (p) => { let s = `<div style="font-weight:600;margin-bottom:6px">${p[0].axisValue}</div>`; p.forEach(x => { s += `<div style="display:flex;gap:12px;justify-content:space-between;font-size:12px;margin:2px 0"><span>${x.marker} ${x.seriesName}</span><span style="font-family:JetBrains Mono;font-weight:600">${money(x.value)}</span></div>`; }); return s; } },
     legend: { data: ['Revenue', 'Gross Profit'], textStyle: { color: t.textColor, fontSize: 11 }, top: 0, right: 10 },
-    xAxis: {
-      type: 'category', data: labels,
-      axisLine: { lineStyle: { color: t.axisColor } },
-      axisLabel: { color: t.textColor, fontSize: 10 },
-      axisTick: { show: false }
-    },
-    yAxis: [{
-      type: 'value',
-      axisLine: { show: false }, axisTick: { show: false },
-      axisLabel: { color: t.textColor, fontSize: 10, formatter: (v) => fmtAED(v) },
-      splitLine: { lineStyle: { color: t.gridColor } }
-    }],
+    xAxis: { type: 'category', data: labels, axisLine: { lineStyle: { color: t.axisColor } }, axisLabel: { color: t.textColor, fontSize: 10 }, axisTick: { show: false } },
+    yAxis: [{ type: 'value', axisLine: { show: false }, axisTick: { show: false }, axisLabel: { color: t.textColor, fontSize: 10, formatter: (v) => fmtAED(v) }, splitLine: { lineStyle: { color: t.gridColor } } }],
     series: [
-      {
-        name: 'Revenue', type: 'bar', data: revData,
-        itemStyle: { color: { type: 'linear', x: 0, y: 0, x2: 0, y2: 1, colorStops: [{ offset: 0, color: '#FE2B32' }, { offset: 1, color: 'rgba(254,43,50,0.4)' }] }, borderRadius: [4, 4, 0, 0] },
-        barWidth: '40%'
-      },
-      {
-        name: 'Gross Profit', type: 'line', data: gpData, smooth: true,
-        lineStyle: { color: '#FFC533', width: 3 },
-        itemStyle: { color: '#FFC533', borderColor: '#FFC533', borderWidth: 2 },
-        symbol: 'circle', symbolSize: 7
-      }
-    ],
-    animationDuration: 1000,
-    animationEasing: 'cubicOut'
+      { name: 'Revenue', type: 'bar', data: keys.map(k => monthly[k].rev), itemStyle: { color: { type: 'linear', x: 0, y: 0, x2: 0, y2: 1, colorStops: [{ offset: 0, color: '#FE2B32' }, { offset: 1, color: 'rgba(254,43,50,0.4)' }] }, borderRadius: [4, 4, 0, 0] }, barWidth: '40%' },
+      { name: 'Gross Profit', type: 'line', data: keys.map(k => monthly[k].gp), smooth: true, lineStyle: { color: '#FFC533', width: 3 }, itemStyle: { color: '#FFC533', borderColor: '#FFC533', borderWidth: 2 }, symbol: 'circle', symbolSize: 7 }
+    ], animationDuration: 1000, animationEasing: 'cubicOut'
   });
 }
-
 function renderDivisionChart(deals) {
-  const t = getChartTheme();
-  const byDiv = {};
-  deals.forEach(d => {
-    const div = d['DIVISON'] || 'OTHER';
-    byDiv[div] = (byDiv[div] || 0) + toNum(d['GP']);
-  });
+  const t = getChartTheme(); const byDiv = {};
+  deals.forEach(d => { const dv = rawVal(d, 'division') || 'OTHER'; byDiv[dv] = (byDiv[dv] || 0) + dealGP(d); });
   const colors = { RBR: '#FE2B32', STL: '#FF41A5', ALU: '#FFC533', NFS: '#4d9fff', SST: '#00d4aa' };
-  const data = Object.entries(byDiv).filter(([k, v]) => v > 0).map(([k, v]) => ({
-    name: k, value: Math.round(v),
-    itemStyle: { color: colors[k] || '#888' }
-  }));
-
+  const data = Object.entries(byDiv).filter(([k, v]) => v > 0).map(([k, v]) => ({ name: k, value: Math.round(v), itemStyle: { color: colors[k] || '#888' } }));
   initChart('chart-division', {
     backgroundColor: 'transparent',
-    tooltip: {
-      trigger: 'item',
-      backgroundColor: t.tooltipBg, borderColor: t.tooltipBorder, borderWidth: 1,
-      textStyle: { color: t.tooltipText, fontFamily: 'DM Sans' },
-      formatter: (p) => `<div style="font-weight:600">${p.name}</div><div style="font-family:JetBrains Mono;font-size:12px">AED ${fmtAED(p.value)} · ${p.percent}%</div>`
-    },
+    tooltip: { trigger: 'item', backgroundColor: t.tooltipBg, borderColor: t.tooltipBorder, borderWidth: 1, textStyle: { color: t.tooltipText, fontFamily: 'DM Sans' }, formatter: (p) => `<div style="font-weight:600">${p.name}</div><div style="font-family:JetBrains Mono;font-size:12px">${money(p.value)} · ${p.percent}%</div>` },
     legend: { bottom: 0, textStyle: { color: t.textColor, fontSize: 11 } },
-    series: [{
-      type: 'pie', radius: ['50%', '75%'], center: ['50%', '45%'],
-      itemStyle: { borderColor: t.tooltipBg, borderWidth: 3 },
-      label: { color: t.textColor, formatter: '{b}\n{d}%', fontSize: 11 },
-      data,
-      animationType: 'expansion',
-      animationDuration: 900
-    }]
+    series: [{ type: 'pie', radius: ['50%', '75%'], center: ['50%', '45%'], itemStyle: { borderColor: t.tooltipBg, borderWidth: 3 }, label: { color: t.textColor, formatter: '{b}\n{d}%', fontSize: 11 }, data, animationType: 'expansion', animationDuration: 900 }]
   });
 }
-
 function renderTopCustomersChart(deals) {
-  const t = getChartTheme();
-  const byCust = {};
-  deals.forEach(d => {
-    const c = d['CUSTOMER'] || 'Unknown';
-    byCust[c] = (byCust[c] || 0) + toNum(d['GP']);
-  });
+  const t = getChartTheme(); const byCust = {};
+  deals.forEach(d => { const c = rawVal(d, 'customer') || 'Unknown'; byCust[c] = (byCust[c] || 0) + dealGP(d); });
   const sorted = Object.entries(byCust).sort((a, b) => b[1] - a[1]).slice(0, 5);
-  const labels = sorted.map(([k]) => k.length > 25 ? k.slice(0, 25) + '...' : k);
-  const values = sorted.map(([, v]) => Math.round(v));
-
   initChart('chart-top-customers', {
-    backgroundColor: 'transparent',
-    grid: { left: 140, right: 40, top: 10, bottom: 20 },
-    tooltip: {
-      backgroundColor: t.tooltipBg, borderColor: t.tooltipBorder, borderWidth: 1,
-      textStyle: { color: t.tooltipText },
-      formatter: (p) => `<div style="font-weight:600">${p[0].name}</div><div style="font-family:JetBrains Mono">AED ${fmtAED(p[0].value)}</div>`
-    },
+    backgroundColor: 'transparent', grid: { left: 140, right: 40, top: 10, bottom: 20 },
+    tooltip: { backgroundColor: t.tooltipBg, borderColor: t.tooltipBorder, borderWidth: 1, textStyle: { color: t.tooltipText }, formatter: (p) => `<div style="font-weight:600">${p[0].name}</div><div style="font-family:JetBrains Mono">${money(p[0].value)}</div>` },
     xAxis: { type: 'value', axisLine: { show: false }, axisTick: { show: false }, axisLabel: { color: t.textColor, fontSize: 10, formatter: (v) => fmtAED(v) }, splitLine: { lineStyle: { color: t.gridColor } } },
-    yAxis: { type: 'category', data: labels.reverse(), axisLine: { show: false }, axisTick: { show: false }, axisLabel: { color: t.textColor, fontSize: 11 } },
-    series: [{
-      type: 'bar', data: values.reverse(),
-      itemStyle: { color: { type: 'linear', x: 0, y: 0, x2: 1, y2: 0, colorStops: [{ offset: 0, color: 'rgba(254,43,50,0.4)' }, { offset: 1, color: '#FE2B32' }] }, borderRadius: [0, 4, 4, 0] },
-      barWidth: '60%',
-      animationDuration: 1000
-    }]
+    yAxis: { type: 'category', data: sorted.map(([k]) => k.length > 25 ? k.slice(0, 25) + '...' : k).reverse(), axisLine: { show: false }, axisTick: { show: false }, axisLabel: { color: t.textColor, fontSize: 11 } },
+    series: [{ type: 'bar', data: sorted.map(([, v]) => Math.round(v)).reverse(), itemStyle: { color: { type: 'linear', x: 0, y: 0, x2: 1, y2: 0, colorStops: [{ offset: 0, color: 'rgba(254,43,50,0.4)' }, { offset: 1, color: '#FE2B32' }] }, borderRadius: [0, 4, 4, 0] }, barWidth: '60%', animationDuration: 1000 }]
   });
 }
-
 function renderStatusChart(byStatus) {
   const t = getChartTheme();
   const colors = { 'COMPLETED': '#00d4aa', 'LIVE': '#FFC533', 'CANCELLED': 'rgba(255,255,255,0.2)', 'PARTIALLY COMPLETED': '#4d9fff', 'INCOMPLETE': '#FE2B32' };
-  const data = Object.entries(byStatus).map(([k, v]) => ({
-    name: k, value: v,
-    itemStyle: { color: colors[k] || '#888' }
-  }));
-
+  const data = Object.entries(byStatus).map(([k, v]) => ({ name: k, value: v, itemStyle: { color: colors[k] || '#888' } }));
   initChart('chart-status', {
     backgroundColor: 'transparent',
-    tooltip: {
-      trigger: 'item',
-      backgroundColor: t.tooltipBg, borderColor: t.tooltipBorder, borderWidth: 1,
-      textStyle: { color: t.tooltipText },
-      formatter: (p) => `<div style="font-weight:600">${p.name}</div><div style="font-family:JetBrains Mono">${p.value} deals · ${p.percent}%</div>`
-    },
-    series: [{
-      type: 'pie', radius: '70%', center: ['50%', '50%'],
-      itemStyle: { borderColor: t.tooltipBg, borderWidth: 2 },
-      label: { color: t.textColor, formatter: '{b}\n{c}', fontSize: 11 },
-      data,
-      animationType: 'scale',
-      animationDuration: 900
-    }]
+    tooltip: { trigger: 'item', backgroundColor: t.tooltipBg, borderColor: t.tooltipBorder, borderWidth: 1, textStyle: { color: t.tooltipText }, formatter: (p) => `<div style="font-weight:600">${p.name}</div><div style="font-family:JetBrains Mono">${p.value} deals · ${p.percent}%</div>` },
+    series: [{ type: 'pie', radius: '70%', center: ['50%', '50%'], itemStyle: { borderColor: t.tooltipBg, borderWidth: 2 }, label: { color: t.textColor, formatter: '{b}\n{c}', fontSize: 11 }, data, animationType: 'scale', animationDuration: 900 }]
   });
 }
 
-/* ───────────────────────────────────────────────────────────────
-   DEALS PAGE
-   ─────────────────────────────────────────────────────────────── */
+/* ─── DEALS ─── */
 function getFilteredDeals() {
   const q = ($('deal-search').value || '').toLowerCase().trim();
-  const div = $('deal-division').value;
-  const sts = $('deal-status').value;
-  const cust = $('deal-customer').value;
-  const vnd = $('deal-vendor').value;
+  const div = $('deal-division').value, sts = $('deal-status').value, cust = $('deal-customer').value, vnd = $('deal-vendor').value;
   const from = $('deal-from').value ? parseDate($('deal-from').value) : null;
   const to = $('deal-to').value ? parseDate($('deal-to').value) : null;
-
   return STATE.data.dc.filter(r => {
-    if (div && r['DIVISON'] !== div) return false;
-    if (sts && r['STATUS'] !== sts) return false;
-    if (cust && r['CUSTOMER'] !== cust) return false;
-    if (vnd && r['VENDOR'] !== vnd) return false;
-    const d = parseDate(r['INV DT']);
+    if (div && rawVal(r, 'division') !== div) return false;
+    if (sts && rawVal(r, 'status') !== sts) return false;
+    if (cust && rawVal(r, 'customer') !== cust) return false;
+    if (vnd && rawVal(r, 'vendor') !== vnd) return false;
+    const d = parseDate(rawVal(r, 'invoiceDate'));
     if (from && d && d < from) return false;
     if (to && d && d > to) return false;
-    if (q) {
-      const blob = [r['DEAL'], r['INV NO'], r['CUSTOMER'], r['VENDOR'], r['SO No.'], r['PO No.']].join(' ').toLowerCase();
-      if (!blob.includes(q)) return false;
-    }
+    if (q) { const blob = [rawVal(r, 'deal'), rawVal(r, 'invoiceNo'), rawVal(r, 'customer'), rawVal(r, 'vendor'), rawVal(r, 'salesOrder'), rawVal(r, 'purchaseOrder')].join(' ').toLowerCase(); if (!blob.includes(q)) return false; }
     return true;
   });
 }
-
 function renderDeals() {
-  const filtered = getFilteredDeals();
-  const tbody = $('deals-tbody');
-
-  // KPIs
-  const rev = filtered.reduce((s, r) => s + toNum(r['SALES VALUE AED']), 0);
-  const gp = filtered.reduce((s, r) => s + toNum(r['GP']), 0);
-  const avgGp = filtered.length ? gp / filtered.length : 0;
-
+  const filtered = getFilteredDeals(); const tbody = $('deals-tbody');
+  const rev = filtered.reduce((s, r) => s + num(r, 'revenue'), 0);
+  const gp = filtered.reduce((s, r) => s + dealGP(r), 0);
   $('dx-count').textContent = fmtNum(filtered.length);
-  $('dx-rev').textContent = 'AED ' + fmtAED(rev);
-  $('dx-gp').textContent = 'AED ' + fmtAED(gp);
-  $('dx-avg').textContent = 'AED ' + fmtAED(avgGp);
-
-  // Table
-  if (!filtered.length) {
-    tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;padding:40px;color:var(--text-tertiary)">No deals match these filters.</td></tr>';
-    return;
-  }
-
-  const sorted = [...filtered].sort((a, b) => {
-    const da = parseDate(a['INV DT']);
-    const db = parseDate(b['INV DT']);
-    return (db?.getTime() || 0) - (da?.getTime() || 0);
-  });
-
-  tbody.innerHTML = sorted.map((r, idx) => {
-    const gpVal = toNum(r['GP']);
-    const gpClass = gpVal > 0 ? 'pos' : gpVal < 0 ? 'neg' : '';
-    const status = String(r['STATUS'] || '').toUpperCase().replace(/\s+/g, '-').toLowerCase();
-    const div = r['DIVISON'] || '';
+  $('dx-rev').textContent = money(rev); $('dx-gp').textContent = money(gp);
+  $('dx-avg').textContent = money(filtered.length ? gp / filtered.length : 0);
+  if (!filtered.length) { tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;padding:40px;color:var(--text-tertiary)">No deals match these filters.</td></tr>'; return; }
+  const sorted = [...filtered].sort((a, b) => (parseDate(rawVal(b, 'invoiceDate'))?.getTime() || 0) - (parseDate(rawVal(a, 'invoiceDate'))?.getTime() || 0));
+  tbody.innerHTML = sorted.map(r => {
+    const gpVal = dealGP(r), gpClass = gpVal > 0 ? 'pos' : gpVal < 0 ? 'neg' : '';
+    const status = String(rawVal(r, 'status') || '').toUpperCase().replace(/\s+/g, '-').toLowerCase();
+    const div = rawVal(r, 'division') || '';
     return `<tr data-idx="${STATE.data.dc.indexOf(r)}">
-      <td class="mono" style="color:var(--text-primary);font-weight:500">${escapeHtml(r['DEAL'] || '')}</td>
-      <td>${fmtDate(r['INV DT'])}</td>
-      <td><span class="div-badge ${div}">${escapeHtml(div)}</span></td>
-      <td>${escapeHtml((r['CUSTOMER'] || '').slice(0, 30))}</td>
-      <td>${escapeHtml((r['VENDOR'] || '').slice(0, 25))}</td>
-      <td class="num">${fmtNum(toNum(r['Loaded_Qty']), 2)}</td>
-      <td class="num">${fmtAED(toNum(r['SALES VALUE AED']))}</td>
-      <td class="num">${fmtAED(toNum(r['PURCHASE COST AED']))}</td>
+      <td class="mono" style="color:var(--text-primary);font-weight:500">${escapeHtml(rawVal(r, 'deal') || '')}</td>
+      <td>${fmtDate(rawVal(r, 'invoiceDate'))}</td>
+      <td><span class="div-badge ${escapeHtml(div)}">${escapeHtml(div)}</span></td>
+      <td>${escapeHtml((rawVal(r, 'customer') || '').slice(0, 30))}</td>
+      <td>${escapeHtml((rawVal(r, 'vendor') || '').slice(0, 25))}</td>
+      <td class="num">${fmtNum(num(r, 'quantity'), 2)}</td>
+      <td class="num">${fmtAED(num(r, 'revenue'))}</td>
+      <td class="num">${fmtAED(num(r, 'cost'))}</td>
       <td class="num ${gpClass}">${fmtAED(gpVal)}</td>
-      <td><span class="badge ${status}">${escapeHtml(r['STATUS'] || '')}</span></td>
+      <td><span class="badge ${status}">${escapeHtml(rawVal(r, 'status') || '')}</span></td>
     </tr>`;
   }).join('');
-
-  // Wire row clicks
-  tbody.querySelectorAll('tr').forEach(tr => {
-    tr.addEventListener('click', () => {
-      const idx = parseInt(tr.dataset.idx);
-      if (!isNaN(idx)) openDealModal(STATE.data.dc[idx]);
-    });
-  });
+  tbody.querySelectorAll('tr').forEach(tr => tr.addEventListener('click', () => { const idx = parseInt(tr.dataset.idx); if (!isNaN(idx)) openDealModal(STATE.data.dc[idx]); }));
 }
 
-/* ───────────────────────────────────────────────────────────────
-   DEAL MODAL
-   ─────────────────────────────────────────────────────────────── */
+/* ─── DEAL MODAL ─── */
 function setupModal() {
   $('modal-close').addEventListener('click', closeModal);
-  $('deal-modal').addEventListener('click', (e) => {
-    if (e.target === $('deal-modal')) closeModal();
-  });
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') closeModal();
-  });
+  $('deal-modal').addEventListener('click', e => { if (e.target === $('deal-modal')) closeModal(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
 }
-
 function closeModal() { $('deal-modal').classList.remove('show'); }
-
 function openDealModal(deal) {
-  $('modal-title').textContent = deal['DEAL'] || 'Deal';
-  $('modal-sub').textContent = `${deal['INV NO'] || '—'} · ${fmtDate(deal['INV DT'])} · ${deal['DIVISON'] || '—'}`;
-
-  const rev = toNum(deal['SALES VALUE AED']);
-  const cost = toNum(deal['PURCHASE COST AED']);
-  const freight = toNum(deal['Freight']);
-  const bankCharges = toNum(deal['TOTAL BANK CHARGES (AED)']);
-  const otherCharges = toNum(deal['Other Charges']);
-  const gp = toNum(deal['GP']);
+  $('modal-title').textContent = rawVal(deal, 'deal') || 'Deal';
+  $('modal-sub').textContent = `${rawVal(deal, 'invoiceNo') || '—'} · ${fmtDate(rawVal(deal, 'invoiceDate'))} · ${rawVal(deal, 'division') || '—'}`;
+  const rev = num(deal, 'revenue'), cost = num(deal, 'cost'), freight = freightAED(deal), bankCharges = num(deal, 'bankCharges'), otherCharges = num(deal, 'otherCharges'), gp = dealGP(deal);
   const grossMargin = rev > 0 ? (rev - cost) / rev : 0;
-
+  const freightLabel = SETTINGS.freight.inUSD ? `Freight (USD × ${SETTINGS.freight.usdToAed})` : 'Freight';
   $('modal-body').innerHTML = `
     <div class="detail-grid">
-      <div class="detail-item">
-        <div class="detail-label">Customer</div>
-        <div class="detail-value" style="font-family:var(--font-body);font-size:13px">${escapeHtml(deal['CUSTOMER'] || '—')}</div>
-      </div>
-      <div class="detail-item">
-        <div class="detail-label">Vendor</div>
-        <div class="detail-value" style="font-family:var(--font-body);font-size:13px">${escapeHtml(deal['VENDOR'] || '—')}</div>
-      </div>
-      <div class="detail-item">
-        <div class="detail-label">Sales Order</div>
-        <div class="detail-value">${escapeHtml(deal['SO No.'] || '—')}</div>
-      </div>
-      <div class="detail-item">
-        <div class="detail-label">Purchase Order</div>
-        <div class="detail-value">${escapeHtml(deal['PO No.'] || '—')}</div>
-      </div>
-      <div class="detail-item">
-        <div class="detail-label">Loaded Quantity</div>
-        <div class="detail-value">${fmtNum(toNum(deal['Loaded_Qty']), 2)} MT</div>
-      </div>
-      <div class="detail-item">
-        <div class="detail-label">Status</div>
-        <div class="detail-value"><span class="badge ${String(deal['STATUS'] || '').toUpperCase().replace(/\s+/g, '-').toLowerCase()}">${escapeHtml(deal['STATUS'] || '—')}</span></div>
-      </div>
+      <div class="detail-item"><div class="detail-label">Customer</div><div class="detail-value" style="font-family:var(--font-body);font-size:13px">${escapeHtml(rawVal(deal, 'customer') || '—')}</div></div>
+      <div class="detail-item"><div class="detail-label">Vendor</div><div class="detail-value" style="font-family:var(--font-body);font-size:13px">${escapeHtml(rawVal(deal, 'vendor') || '—')}</div></div>
+      <div class="detail-item"><div class="detail-label">Sales Order</div><div class="detail-value">${escapeHtml(rawVal(deal, 'salesOrder') || '—')}</div></div>
+      <div class="detail-item"><div class="detail-label">Purchase Order</div><div class="detail-value">${escapeHtml(rawVal(deal, 'purchaseOrder') || '—')}</div></div>
+      <div class="detail-item"><div class="detail-label">Loaded Quantity</div><div class="detail-value">${fmtNum(num(deal, 'quantity'), 2)} MT</div></div>
+      <div class="detail-item"><div class="detail-label">Status</div><div class="detail-value"><span class="badge ${String(rawVal(deal, 'status') || '').toUpperCase().replace(/\s+/g, '-').toLowerCase()}">${escapeHtml(rawVal(deal, 'status') || '—')}</span></div></div>
     </div>
-
     <div class="pnl-breakdown">
-      <div class="pnl-row">
-        <span class="label">Sales Value</span>
-        <span class="value positive">+ AED ${fmtAED(rev)}</span>
-      </div>
-      <div class="pnl-row">
-        <span class="label">Purchase Cost</span>
-        <span class="value negative">− AED ${fmtAED(cost)}</span>
-      </div>
-      <div class="pnl-row">
-        <span class="label">Gross Margin (before charges)</span>
-        <span class="value">${fmtPct(grossMargin)}</span>
-      </div>
-      <div class="pnl-row">
-        <span class="label">Freight</span>
-        <span class="value ${freight > 0 ? 'negative' : ''}">− AED ${fmtAED(freight)}</span>
-      </div>
-      <div class="pnl-row">
-        <span class="label">Bank Charges (Total)</span>
-        <span class="value ${bankCharges > 0 ? 'negative' : ''}">− AED ${fmtAED(bankCharges)}</span>
-      </div>
-      <div class="pnl-row">
-        <span class="label">Other Charges</span>
-        <span class="value ${otherCharges > 0 ? 'negative' : ''}">− AED ${fmtAED(otherCharges)}</span>
-      </div>
-      <div class="pnl-row total ${gp >= 0 ? 'positive' : 'negative'}">
-        <span>Net Gross Profit</span>
-        <span class="value ${gp >= 0 ? 'positive' : 'negative'}">AED ${fmtAED(gp)}</span>
-      </div>
-    </div>
-  `;
-
+      <div class="pnl-row"><span class="label">Sales Value</span><span class="value positive">+ ${money(rev)}</span></div>
+      <div class="pnl-row"><span class="label">Purchase Cost</span><span class="value negative">− ${money(cost)}</span></div>
+      <div class="pnl-row"><span class="label">Gross Margin (before charges)</span><span class="value">${fmtPct(grossMargin)}</span></div>
+      <div class="pnl-row"><span class="label">${freightLabel}</span><span class="value ${freight > 0 ? 'negative' : ''}">− ${money(freight)}</span></div>
+      <div class="pnl-row"><span class="label">Bank Charges (Total)</span><span class="value ${bankCharges > 0 ? 'negative' : ''}">− ${money(bankCharges)}</span></div>
+      <div class="pnl-row"><span class="label">Other Charges</span><span class="value ${otherCharges > 0 ? 'negative' : ''}">− ${money(otherCharges)}</span></div>
+      <div class="pnl-row total ${gp >= 0 ? 'positive' : 'negative'}"><span>Net Gross Profit</span><span class="value ${gp >= 0 ? 'positive' : 'negative'}">${money(gp)}</span></div>
+    </div>`;
   $('deal-modal').classList.add('show');
 }
-
-/* ───────────────────────────────────────────────────────────────
-   CUSTOMERS PAGE
-   ─────────────────────────────────────────────────────────────── */
+/* ─── CUSTOMERS ─── */
 function renderCustomers() {
-  const completed = STATE.data.dc.filter(r => String(r['STATUS'] || '').toUpperCase() === 'COMPLETED');
+  const completed = STATE.data.dc.filter(isCompleted);
   const byCust = {};
   completed.forEach(d => {
-    const c = d['CUSTOMER'] || 'Unknown';
+    const c = rawVal(d, 'customer') || 'Unknown';
     if (!byCust[c]) byCust[c] = { rev: 0, gp: 0, count: 0 };
-    byCust[c].rev += toNum(d['SALES VALUE AED']);
-    byCust[c].gp += toNum(d['GP']);
-    byCust[c].count += 1;
+    byCust[c].rev += num(d, 'revenue'); byCust[c].gp += dealGP(d); byCust[c].count += 1;
   });
-
-  const sorted = Object.entries(byCust)
-    .map(([k, v]) => ({ name: k, ...v, margin: v.rev > 0 ? v.gp / v.rev : 0, avgGp: v.gp / v.count }))
-    .sort((a, b) => b.gp - a.gp);
-
-  renderCustomerGpChart(sorted);
-  renderCustomerPieChart(sorted);
-
-  // Table
+  const sorted = Object.entries(byCust).map(([k, v]) => ({ name: k, ...v, margin: v.rev > 0 ? v.gp / v.rev : 0, avgGp: v.gp / v.count })).sort((a, b) => b.gp - a.gp);
+  renderCustomerGpChart(sorted); renderCustomerPieChart(sorted);
+  const hi = (SETTINGS.marginThresholds.healthy || 5) / 100, lo = (SETTINGS.marginThresholds.caution || 2) / 100;
   $('customers-tbody').innerHTML = sorted.map(c => {
-    const healthClass = c.margin > 0.05 ? 'pos' : c.margin > 0.02 ? 'warn' : 'neg';
-    const healthLabel = c.margin > 0.05 ? 'Strong' : c.margin > 0.02 ? 'Watch' : c.margin > 0 ? 'Weak' : 'Loss-making';
-    const badgeClass = c.margin > 0.05 ? 'completed' : c.margin > 0.02 ? 'live' : 'incomplete';
+    const healthClass = c.margin > hi ? 'pos' : c.margin > lo ? 'warn' : 'neg';
+    const healthLabel = c.margin > hi ? 'Strong' : c.margin > lo ? 'Watch' : c.margin > 0 ? 'Weak' : 'Loss-making';
+    const badgeClass = c.margin > hi ? 'completed' : c.margin > lo ? 'live' : 'incomplete';
     return `<tr>
       <td style="color:var(--text-primary);font-weight:500">${escapeHtml(c.name)}</td>
       <td class="num">${c.count}</td>
@@ -2378,89 +1087,45 @@ function renderCustomers() {
     </tr>`;
   }).join('');
 }
-
 function renderCustomerGpChart(sorted) {
-  const t = getChartTheme();
-  const top = sorted.slice(0, 10);
+  const t = getChartTheme(); const top = sorted.slice(0, 10);
   initChart('chart-customer-gp', {
-    backgroundColor: 'transparent',
-    grid: { left: 180, right: 40, top: 10, bottom: 20 },
-    tooltip: {
-      backgroundColor: t.tooltipBg, borderColor: t.tooltipBorder, borderWidth: 1,
-      textStyle: { color: t.tooltipText },
-      formatter: (p) => `<div style="font-weight:600">${p[0].name}</div><div style="font-family:JetBrains Mono">AED ${fmtAED(p[0].value)}</div>`
-    },
+    backgroundColor: 'transparent', grid: { left: 180, right: 40, top: 10, bottom: 20 },
+    tooltip: { backgroundColor: t.tooltipBg, borderColor: t.tooltipBorder, borderWidth: 1, textStyle: { color: t.tooltipText }, formatter: (p) => `<div style="font-weight:600">${p[0].name}</div><div style="font-family:JetBrains Mono">${money(p[0].value)}</div>` },
     xAxis: { type: 'value', axisLine: { show: false }, axisTick: { show: false }, axisLabel: { color: t.textColor, fontSize: 10, formatter: (v) => fmtAED(v) }, splitLine: { lineStyle: { color: t.gridColor } } },
     yAxis: { type: 'category', data: top.map(c => c.name.length > 25 ? c.name.slice(0, 25) + '...' : c.name).reverse(), axisLine: { show: false }, axisTick: { show: false }, axisLabel: { color: t.textColor, fontSize: 10 } },
-    series: [{
-      type: 'bar', data: top.map(c => Math.round(c.gp)).reverse(),
-      itemStyle: {
-        color: (params) => {
-          const val = params.value;
-          if (val < 0) return '#FE2B32';
-          return { type: 'linear', x: 0, y: 0, x2: 1, y2: 0, colorStops: [{ offset: 0, color: 'rgba(255,65,165,0.3)' }, { offset: 1, color: '#FF41A5' }] };
-        },
-        borderRadius: [0, 4, 4, 0]
-      },
-      barWidth: '60%',
-      animationDuration: 1000
-    }]
+    series: [{ type: 'bar', data: top.map(c => Math.round(c.gp)).reverse(), itemStyle: { color: (p) => p.value < 0 ? '#FE2B32' : { type: 'linear', x: 0, y: 0, x2: 1, y2: 0, colorStops: [{ offset: 0, color: 'rgba(255,65,165,0.3)' }, { offset: 1, color: '#FF41A5' }] }, borderRadius: [0, 4, 4, 0] }, barWidth: '60%', animationDuration: 1000 }]
   });
 }
-
 function renderCustomerPieChart(sorted) {
-  const t = getChartTheme();
-  const top = sorted.slice(0, 8);
+  const t = getChartTheme(); const top = sorted.slice(0, 8);
   const others = sorted.slice(8).reduce((s, c) => s + c.rev, 0);
   const colors = ['#FE2B32', '#FF41A5', '#FFC533', '#00d4aa', '#4d9fff', '#9b4dca', '#f97316', '#06b6d4'];
   const data = top.map((c, i) => ({ name: c.name.length > 20 ? c.name.slice(0, 20) + '...' : c.name, value: Math.round(c.rev), itemStyle: { color: colors[i] } }));
   if (others > 0) data.push({ name: 'Others', value: Math.round(others), itemStyle: { color: 'rgba(255,255,255,0.15)' } });
-
   initChart('chart-customer-pie', {
     backgroundColor: 'transparent',
-    tooltip: {
-      trigger: 'item',
-      backgroundColor: t.tooltipBg, borderColor: t.tooltipBorder, borderWidth: 1,
-      textStyle: { color: t.tooltipText },
-      formatter: (p) => `<div style="font-weight:600">${p.name}</div><div style="font-family:JetBrains Mono">AED ${fmtAED(p.value)} · ${p.percent}%</div>`
-    },
-    series: [{
-      type: 'pie', radius: ['40%', '70%'], center: ['50%', '50%'],
-      itemStyle: { borderColor: t.tooltipBg, borderWidth: 2 },
-      label: { color: t.textColor, fontSize: 10, formatter: '{b}\n{d}%' },
-      data,
-      animationDuration: 1000
-    }]
+    tooltip: { trigger: 'item', backgroundColor: t.tooltipBg, borderColor: t.tooltipBorder, borderWidth: 1, textStyle: { color: t.tooltipText }, formatter: (p) => `<div style="font-weight:600">${p.name}</div><div style="font-family:JetBrains Mono">${money(p.value)} · ${p.percent}%</div>` },
+    series: [{ type: 'pie', radius: ['40%', '70%'], center: ['50%', '50%'], itemStyle: { borderColor: t.tooltipBg, borderWidth: 2 }, label: { color: t.textColor, fontSize: 10, formatter: '{b}\n{d}%' }, data, animationDuration: 1000 }]
   });
 }
 
-/* ───────────────────────────────────────────────────────────────
-   VENDORS PAGE
-   ─────────────────────────────────────────────────────────────── */
+/* ─── VENDORS ─── */
 function renderVendors() {
-  const completed = STATE.data.dc.filter(r => String(r['STATUS'] || '').toUpperCase() === 'COMPLETED');
+  const completed = STATE.data.dc.filter(isCompleted);
   const byVnd = {};
   completed.forEach(d => {
-    const v = d['VENDOR'] || 'Unknown';
+    const v = rawVal(d, 'vendor') || 'Unknown';
     if (!byVnd[v]) byVnd[v] = { cost: 0, qty: 0, gp: 0, count: 0, currencies: new Set() };
-    byVnd[v].cost += toNum(d['PURCHASE COST AED']);
-    byVnd[v].qty += toNum(d['Loaded_Qty']);
-    byVnd[v].gp += toNum(d['GP']);
-    byVnd[v].count += 1;
-    if (d['FRCU_PUR']) byVnd[v].currencies.add(d['FRCU_PUR']);
+    byVnd[v].cost += num(d, 'cost'); byVnd[v].qty += num(d, 'quantity'); byVnd[v].gp += dealGP(d); byVnd[v].count += 1;
+    if (rawVal(d, 'purchaseCurrency')) byVnd[v].currencies.add(rawVal(d, 'purchaseCurrency'));
   });
-
-  const sorted = Object.entries(byVnd)
-    .map(([k, v]) => ({ name: k, ...v, costPerMT: v.qty > 0 ? v.cost / v.qty : 0, currencies: [...v.currencies] }))
-    .sort((a, b) => b.cost - a.cost);
-
-  renderVendorSpendChart(sorted);
-  renderVendorFxChart(completed);
-
+  const sorted = Object.entries(byVnd).map(([k, v]) => ({ name: k, ...v, costPerMT: v.qty > 0 ? v.cost / v.qty : 0, currencies: [...v.currencies] })).sort((a, b) => b.cost - a.cost);
+  renderVendorSpendChart(sorted); renderVendorFxChart(completed);
   $('vendors-tbody').innerHTML = sorted.map(v => {
-    const avgGpPerDeal = v.gp / v.count;
-    const profile = avgGpPerDeal > 5000 ? 'High value' : avgGpPerDeal > 1000 ? 'Steady' : avgGpPerDeal > 0 ? 'Low margin' : 'Loss-making';
-    const profileClass = avgGpPerDeal > 5000 ? 'completed' : avgGpPerDeal > 1000 ? 'partial' : avgGpPerDeal > 0 ? 'live' : 'incomplete';
+    const avg = v.gp / v.count;
+    const profile = avg > 5000 ? 'High value' : avg > 1000 ? 'Steady' : avg > 0 ? 'Low margin' : 'Loss-making';
+    const cls = avg > 5000 ? 'completed' : avg > 1000 ? 'partial' : avg > 0 ? 'live' : 'incomplete';
     return `<tr>
       <td style="color:var(--text-primary);font-weight:500">${escapeHtml(v.name)}</td>
       <td class="num">${v.count}</td>
@@ -2468,462 +1133,334 @@ function renderVendors() {
       <td class="num">${fmtAED(v.cost)}</td>
       <td class="num">${fmtAED(v.costPerMT)}</td>
       <td class="num ${v.gp >= 0 ? 'pos' : 'neg'}">${fmtAED(v.gp)}</td>
-      <td><span class="badge ${profileClass}">${profile}</span></td>
+      <td><span class="badge ${cls}">${profile}</span></td>
     </tr>`;
   }).join('');
 }
-
 function renderVendorSpendChart(sorted) {
-  const t = getChartTheme();
-  const top = sorted.slice(0, 10);
+  const t = getChartTheme(); const top = sorted.slice(0, 10);
   initChart('chart-vendor-spend', {
-    backgroundColor: 'transparent',
-    grid: { left: 180, right: 40, top: 10, bottom: 20 },
-    tooltip: {
-      backgroundColor: t.tooltipBg, borderColor: t.tooltipBorder, borderWidth: 1,
-      textStyle: { color: t.tooltipText },
-      formatter: (p) => `<div style="font-weight:600">${p[0].name}</div><div style="font-family:JetBrains Mono">AED ${fmtAED(p[0].value)}</div>`
-    },
+    backgroundColor: 'transparent', grid: { left: 180, right: 40, top: 10, bottom: 20 },
+    tooltip: { backgroundColor: t.tooltipBg, borderColor: t.tooltipBorder, borderWidth: 1, textStyle: { color: t.tooltipText }, formatter: (p) => `<div style="font-weight:600">${p[0].name}</div><div style="font-family:JetBrains Mono">${money(p[0].value)}</div>` },
     xAxis: { type: 'value', axisLine: { show: false }, axisTick: { show: false }, axisLabel: { color: t.textColor, fontSize: 10, formatter: (v) => fmtAED(v) }, splitLine: { lineStyle: { color: t.gridColor } } },
     yAxis: { type: 'category', data: top.map(c => c.name.length > 25 ? c.name.slice(0, 25) + '...' : c.name).reverse(), axisLine: { show: false }, axisTick: { show: false }, axisLabel: { color: t.textColor, fontSize: 10 } },
-    series: [{
-      type: 'bar', data: top.map(c => Math.round(c.cost)).reverse(),
-      itemStyle: { color: { type: 'linear', x: 0, y: 0, x2: 1, y2: 0, colorStops: [{ offset: 0, color: 'rgba(255,197,51,0.3)' }, { offset: 1, color: '#FFC533' }] }, borderRadius: [0, 4, 4, 0] },
-      barWidth: '60%',
-      animationDuration: 1000
-    }]
+    series: [{ type: 'bar', data: top.map(c => Math.round(c.cost)).reverse(), itemStyle: { color: { type: 'linear', x: 0, y: 0, x2: 1, y2: 0, colorStops: [{ offset: 0, color: 'rgba(255,197,51,0.3)' }, { offset: 1, color: '#FFC533' }] }, borderRadius: [0, 4, 4, 0] }, barWidth: '60%', animationDuration: 1000 }]
   });
 }
-
 function renderVendorFxChart(deals) {
-  const t = getChartTheme();
-  const byCcy = {};
-  deals.forEach(d => {
-    const c = d['FRCU_PUR'] || 'AED';
-    if (!byCcy[c]) byCcy[c] = 0;
-    byCcy[c] += toNum(d['PURCHASE COST AED']);
-  });
+  const t = getChartTheme(); const byCcy = {};
+  deals.forEach(d => { const c = rawVal(d, 'purchaseCurrency') || 'AED'; byCcy[c] = (byCcy[c] || 0) + num(d, 'cost'); });
   const colors = { USD: '#00d4aa', EUR: '#FF41A5', GBP: '#FFC533', AED: '#FE2B32', INR: '#4d9fff' };
   const data = Object.entries(byCcy).map(([k, v]) => ({ name: k, value: Math.round(v), itemStyle: { color: colors[k] || '#888' } }));
-
   initChart('chart-vendor-fx', {
     backgroundColor: 'transparent',
-    tooltip: {
-      trigger: 'item',
-      backgroundColor: t.tooltipBg, borderColor: t.tooltipBorder, borderWidth: 1,
-      textStyle: { color: t.tooltipText },
-      formatter: (p) => `<div style="font-weight:600">${p.name}</div><div style="font-family:JetBrains Mono">AED ${fmtAED(p.value)} · ${p.percent}%</div>`
-    },
-    series: [{
-      type: 'pie', radius: ['45%', '70%'], center: ['50%', '50%'],
-      itemStyle: { borderColor: t.tooltipBg, borderWidth: 3 },
-      label: { color: t.textColor, fontSize: 12, formatter: '{b}\n{d}%' },
-      data,
-      animationDuration: 1000
-    }]
+    tooltip: { trigger: 'item', backgroundColor: t.tooltipBg, borderColor: t.tooltipBorder, borderWidth: 1, textStyle: { color: t.tooltipText }, formatter: (p) => `<div style="font-weight:600">${p.name}</div><div style="font-family:JetBrains Mono">${money(p.value)} · ${p.percent}%</div>` },
+    series: [{ type: 'pie', radius: ['45%', '70%'], center: ['50%', '50%'], itemStyle: { borderColor: t.tooltipBg, borderWidth: 3 }, label: { color: t.textColor, fontSize: 12, formatter: '{b}\n{d}%' }, data, animationDuration: 1000 }]
   });
 }
 
-/* ───────────────────────────────────────────────────────────────
-   BSPL PAGE
-   ─────────────────────────────────────────────────────────────── */
+/* ─── BSPL ─── */
 function getBsplSelectedStatuses() {
-  const checkboxes = document.querySelectorAll('#bspl-status-dropdown input[type=checkbox]:checked');
-  return Array.from(checkboxes).map(cb => cb.value);
+  return Array.from(document.querySelectorAll('#bspl-status-dropdown input[type=checkbox]:checked')).map(cb => cb.value);
 }
-
-function getFilteredBSPL() {
+function bsplBaseFilter(includeDivision) {
   const from = $('bspl-from').value ? parseDate($('bspl-from').value) : null;
   const to = $('bspl-to').value ? parseDate($('bspl-to').value) : null;
-  const div = $('bspl-division').value;
-  const cust = $('bspl-customer').value;
-  const vnd = $('bspl-vendor').value;
-  const selectedStatuses = getBsplSelectedStatuses();
-
+  const div = $('bspl-division').value, cust = $('bspl-customer').value, vnd = $('bspl-vendor').value;
+  const selected = getBsplSelectedStatuses();
   return STATE.data.dc.filter(r => {
-    const rowStatus = String(r['STATUS'] || '').toUpperCase();
-    if (selectedStatuses.length > 0) {
-      if (!selectedStatuses.includes(r['STATUS'])) return false;
-    } else {
-      // Default: exclude cancelled
-      if (rowStatus === 'CANCELLED') return false;
-    }
-    if (div && r['DIVISON'] !== div) return false;
-    if (cust && r['CUSTOMER'] !== cust) return false;
-    if (vnd && r['VENDOR'] !== vnd) return false;
-    const d = parseDate(r['INV DT']);
+    if (selected.length > 0) { if (!selected.includes(rawVal(r, 'status'))) return false; }
+    else if (isCancelled(r)) return false;
+    if (includeDivision && div && rawVal(r, 'division') !== div) return false;
+    if (cust && rawVal(r, 'customer') !== cust) return false;
+    if (vnd && rawVal(r, 'vendor') !== vnd) return false;
+    const d = parseDate(rawVal(r, 'invoiceDate'));
     if (from && d && d < from) return false;
     if (to && d && d > to) return false;
     return true;
   });
 }
-
+function getFilteredBSPL() { return bsplBaseFilter(true); }
 function renderBSPL() {
   const filtered = getFilteredBSPL();
-  const rev = filtered.reduce((s, r) => s + toNum(r['SALES VALUE AED']), 0);
-  const cost = filtered.reduce((s, r) => s + toNum(r['PURCHASE COST AED']), 0);
-  const freight = filtered.reduce((s, r) => s + toNum(r['Freight']), 0);
-  const bank = filtered.reduce((s, r) => s + toNum(r['TOTAL BANK CHARGES (AED)']), 0);
-  const other = filtered.reduce((s, r) => s + toNum(r['Other Charges']), 0);
+  const rev = filtered.reduce((s, r) => s + num(r, 'revenue'), 0);
+  const cost = filtered.reduce((s, r) => s + num(r, 'cost'), 0);
+  const freight = filtered.reduce((s, r) => s + freightAED(r), 0);
+  const bank = filtered.reduce((s, r) => s + num(r, 'bankCharges'), 0);
+  const other = filtered.reduce((s, r) => s + num(r, 'otherCharges'), 0);
   const grossGp = rev - cost;
-  const netGp = filtered.reduce((s, r) => s + toNum(r['GP']), 0);
+  const netGp = filtered.reduce((s, r) => s + dealGP(r), 0);
   const margin = rev > 0 ? grossGp / rev : 0;
-
-  $('bspl-revenue').textContent = 'AED ' + fmtAED(rev);
-  $('bspl-cost').textContent = 'AED ' + fmtAED(cost);
-  $('bspl-gp').textContent = 'AED ' + fmtAED(grossGp);
-  $('bspl-net').textContent = 'AED ' + fmtAED(netGp);
+  $('bspl-revenue').textContent = money(rev);
+  $('bspl-cost').textContent = money(cost);
+  $('bspl-gp').textContent = money(grossGp);
+  $('bspl-net').textContent = money(netGp);
   $('bspl-margin').textContent = fmtPct(margin);
-
+  const freightLabel = SETTINGS.freight.inUSD ? `Freight charges (USD × ${SETTINGS.freight.usdToAed})` : 'Freight charges';
   $('bspl-breakdown').innerHTML = `
-    <div class="pnl-row"><span class="label">Revenue (Sales Value)</span><span class="value positive">+ AED ${fmtAED(rev)}</span></div>
-    <div class="pnl-row"><span class="label">Purchase Cost</span><span class="value negative">− AED ${fmtAED(cost)}</span></div>
-    <div class="pnl-row" style="background:rgba(0,212,170,0.05);margin:0 -6px;padding:8px 6px;border-radius:6px">
-      <span class="label" style="font-weight:600">Gross Profit (before charges)</span>
-      <span class="value ${grossGp >= 0 ? 'positive' : 'negative'}" style="font-weight:600">AED ${fmtAED(grossGp)}</span>
-    </div>
-    <div class="pnl-row"><span class="label">Freight charges</span><span class="value negative">− AED ${fmtAED(freight)}</span></div>
-    <div class="pnl-row"><span class="label">Bank charges</span><span class="value negative">− AED ${fmtAED(bank)}</span></div>
-    <div class="pnl-row"><span class="label">Other charges</span><span class="value negative">− AED ${fmtAED(other)}</span></div>
-    <div class="pnl-row total ${netGp >= 0 ? 'positive' : 'negative'}">
-      <span>Net Profit</span>
-      <span class="value ${netGp >= 0 ? 'positive' : 'negative'}">AED ${fmtAED(netGp)}</span>
-    </div>
+    <div class="pnl-row"><span class="label">Revenue (Sales Value)</span><span class="value positive">+ ${money(rev)}</span></div>
+    <div class="pnl-row"><span class="label">Purchase Cost</span><span class="value negative">− ${money(cost)}</span></div>
+    <div class="pnl-row" style="background:rgba(0,212,170,0.05);margin:0 -6px;padding:8px 6px;border-radius:6px"><span class="label" style="font-weight:600">Gross Profit (before charges)</span><span class="value ${grossGp >= 0 ? 'positive' : 'negative'}" style="font-weight:600">${money(grossGp)}</span></div>
+    <div class="pnl-row"><span class="label">${freightLabel}</span><span class="value negative">− ${money(freight)}</span></div>
+    <div class="pnl-row"><span class="label">Bank charges</span><span class="value negative">− ${money(bank)}</span></div>
+    <div class="pnl-row"><span class="label">Other charges</span><span class="value negative">− ${money(other)}</span></div>
+    <div class="pnl-row total ${netGp >= 0 ? 'positive' : 'negative'}"><span>Net Profit</span><span class="value ${netGp >= 0 ? 'positive' : 'negative'}">${money(netGp)}</span></div>
     <div style="margin-top:14px;padding-top:12px;border-top:1px dashed var(--border-subtle);display:grid;grid-template-columns:repeat(3,1fr);gap:12px;font-size:12px">
       <div><div style="font-size:10px;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:3px">Deals counted</div><div style="font-family:var(--font-mono);color:var(--text-primary)">${fmtNum(filtered.length)}</div></div>
       <div><div style="font-size:10px;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:3px">Gross Margin %</div><div style="font-family:var(--font-mono);color:var(--text-primary)">${fmtPct(margin)}</div></div>
       <div><div style="font-size:10px;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:3px">Net Margin %</div><div style="font-family:var(--font-mono);color:var(--text-primary)">${rev > 0 ? fmtPct(netGp / rev) : '—'}</div></div>
-    </div>
-  `;
-
-  // Customer & Vendor pie charts
-  renderBsplCustomerPie(filtered);
-  renderBsplVendorPie(filtered);
-
-  // Division-wise P&L (uses all filters EXCEPT division filter)
-  renderBsplDivisionPnl();
+    </div>`;
+  renderBsplCustomerPie(filtered); renderBsplVendorPie(filtered); renderBsplDivisionPnl();
 }
-
 function renderBsplCustomerPie(filtered) {
-  const t = getChartTheme();
-  const byCust = {};
-  filtered.forEach(r => {
-    const c = r['CUSTOMER'] || 'Unknown';
-    if (!byCust[c]) byCust[c] = { rev: 0, gp: 0 };
-    byCust[c].rev += toNum(r['SALES VALUE AED']);
-    byCust[c].gp += toNum(r['GP']);
-  });
-  const sorted = Object.entries(byCust).sort((a, b) => b[1].rev - a[1].rev);
-  const top = sorted.slice(0, 8);
-  const othersRev = sorted.slice(8).reduce((s, [, v]) => s + v.rev, 0);
+  const t = getChartTheme(); const byCust = {};
+  filtered.forEach(r => { const c = rawVal(r, 'customer') || 'Unknown'; byCust[c] = (byCust[c] || 0) + num(r, 'revenue'); });
+  const sorted = Object.entries(byCust).sort((a, b) => b[1] - a[1]); const top = sorted.slice(0, 8);
+  const othersRev = sorted.slice(8).reduce((s, [, v]) => s + v, 0);
   const colors = ['#FE2B32', '#FF41A5', '#FFC533', '#00d4aa', '#4d9fff', '#9b4dca', '#f97316', '#06b6d4'];
-  const data = top.map(([name, v], i) => ({ name: name.length > 20 ? name.slice(0, 20) + '…' : name, value: Math.round(v.rev), itemStyle: { color: colors[i] } }));
+  const data = top.map(([name, v], i) => ({ name: name.length > 20 ? name.slice(0, 20) + '…' : name, value: Math.round(v), itemStyle: { color: colors[i] } }));
   if (othersRev > 0) data.push({ name: 'Others', value: Math.round(othersRev), itemStyle: { color: 'rgba(255,255,255,0.15)' } });
-
   initChart('chart-bspl-customer-pie', {
     backgroundColor: 'transparent',
-    tooltip: { trigger: 'item', backgroundColor: t.tooltipBg, borderColor: t.tooltipBorder, borderWidth: 1, textStyle: { color: t.tooltipText }, formatter: (p) => `<div style="font-weight:600">${p.name}</div><div style="font-family:JetBrains Mono">AED ${fmtAED(p.value)} · ${p.percent}%</div>` },
+    tooltip: { trigger: 'item', backgroundColor: t.tooltipBg, borderColor: t.tooltipBorder, borderWidth: 1, textStyle: { color: t.tooltipText }, formatter: (p) => `<div style="font-weight:600">${p.name}</div><div style="font-family:JetBrains Mono">${money(p.value)} · ${p.percent}%</div>` },
     series: [{ type: 'pie', radius: ['40%', '70%'], center: ['50%', '50%'], itemStyle: { borderColor: t.tooltipBg, borderWidth: 2 }, label: { color: t.textColor, fontSize: 10, formatter: '{b}\n{d}%' }, data, animationDuration: 900 }]
   });
 }
-
 function renderBsplVendorPie(filtered) {
-  const t = getChartTheme();
-  const byVnd = {};
-  filtered.forEach(r => {
-    const v = r['VENDOR'] || 'Unknown';
-    if (!byVnd[v]) byVnd[v] = 0;
-    byVnd[v] += toNum(r['PURCHASE COST AED']);
-  });
-  const sorted = Object.entries(byVnd).sort((a, b) => b[1] - a[1]);
-  const top = sorted.slice(0, 8);
+  const t = getChartTheme(); const byVnd = {};
+  filtered.forEach(r => { const v = rawVal(r, 'vendor') || 'Unknown'; byVnd[v] = (byVnd[v] || 0) + num(r, 'cost'); });
+  const sorted = Object.entries(byVnd).sort((a, b) => b[1] - a[1]); const top = sorted.slice(0, 8);
   const othersVal = sorted.slice(8).reduce((s, [, v]) => s + v, 0);
   const colors = ['#FFC533', '#FF41A5', '#FE2B32', '#00d4aa', '#4d9fff', '#9b4dca', '#f97316', '#06b6d4'];
   const data = top.map(([name, v], i) => ({ name: name.length > 20 ? name.slice(0, 20) + '…' : name, value: Math.round(v), itemStyle: { color: colors[i] } }));
   if (othersVal > 0) data.push({ name: 'Others', value: Math.round(othersVal), itemStyle: { color: 'rgba(255,255,255,0.15)' } });
-
   initChart('chart-bspl-vendor-pie', {
     backgroundColor: 'transparent',
-    tooltip: { trigger: 'item', backgroundColor: t.tooltipBg, borderColor: t.tooltipBorder, borderWidth: 1, textStyle: { color: t.tooltipText }, formatter: (p) => `<div style="font-weight:600">${p.name}</div><div style="font-family:JetBrains Mono">AED ${fmtAED(p.value)} · ${p.percent}%</div>` },
+    tooltip: { trigger: 'item', backgroundColor: t.tooltipBg, borderColor: t.tooltipBorder, borderWidth: 1, textStyle: { color: t.tooltipText }, formatter: (p) => `<div style="font-weight:600">${p.name}</div><div style="font-family:JetBrains Mono">${money(p.value)} · ${p.percent}%</div>` },
     series: [{ type: 'pie', radius: ['40%', '70%'], center: ['50%', '50%'], itemStyle: { borderColor: t.tooltipBg, borderWidth: 2 }, label: { color: t.textColor, fontSize: 10, formatter: '{b}\n{d}%' }, data, animationDuration: 900 }]
   });
 }
-
 function renderBsplDivisionPnl() {
-  // Filter using all BSPL filters EXCEPT division
-  const from = $('bspl-from').value ? parseDate($('bspl-from').value) : null;
-  const to = $('bspl-to').value ? parseDate($('bspl-to').value) : null;
-  const cust = $('bspl-customer').value;
-  const vnd = $('bspl-vendor').value;
-  const selectedStatuses = getBsplSelectedStatuses();
-
-  const base = STATE.data.dc.filter(r => {
-    const rowStatus = String(r['STATUS'] || '').toUpperCase();
-    if (selectedStatuses.length > 0) {
-      if (!selectedStatuses.includes(r['STATUS'])) return false;
-    } else {
-      if (rowStatus === 'CANCELLED') return false;
-    }
-    if (cust && r['CUSTOMER'] !== cust) return false;
-    if (vnd && r['VENDOR'] !== vnd) return false;
-    const d = parseDate(r['INV DT']);
-    if (from && d && d < from) return false;
-    if (to && d && d > to) return false;
-    return true;
-  });
-
-  const divisions = [...new Set(base.map(r => r['DIVISON']).filter(Boolean))].sort();
+  const base = bsplBaseFilter(false);
+  const divisions = [...new Set(base.map(r => rawVal(r, 'division')).filter(Boolean))].sort();
   if (!divisions.length) {
     $('bspl-div-pnl-head').innerHTML = '';
     $('bspl-div-pnl-body').innerHTML = '<tr><td colspan="2" style="text-align:center;padding:20px;color:var(--text-tertiary)">No data</td></tr>';
-    $('bspl-customer-div-breakdown').innerHTML = '';
-    $('bspl-vendor-div-breakdown').innerHTML = '';
+    $('bspl-customer-div-breakdown').innerHTML = ''; $('bspl-vendor-div-breakdown').innerHTML = '';
     return;
   }
-
   const divColors = { RBR: '#FE2B32', STL: '#FF41A5', ALU: '#FFC533', NFS: '#4d9fff', SST: '#00d4aa' };
-
-  // Aggregate per division
   const byDiv = {};
-  divisions.forEach(d => {
-    byDiv[d] = { rev: 0, cost: 0, freight: 0, bank: 0, other: 0, netGp: 0, deals: 0 };
-  });
+  divisions.forEach(d => { byDiv[d] = { rev: 0, cost: 0, freight: 0, bank: 0, other: 0, netGp: 0, deals: 0 }; });
   base.forEach(r => {
-    const d = r['DIVISON'];
-    if (!byDiv[d]) return;
-    byDiv[d].rev += toNum(r['SALES VALUE AED']);
-    byDiv[d].cost += toNum(r['PURCHASE COST AED']);
-    byDiv[d].freight += toNum(r['Freight']);
-    byDiv[d].bank += toNum(r['TOTAL BANK CHARGES (AED)']);
-    byDiv[d].other += toNum(r['Other Charges']);
-    byDiv[d].netGp += toNum(r['GP']);
-    byDiv[d].deals += 1;
+    const d = rawVal(r, 'division'); if (!byDiv[d]) return;
+    byDiv[d].rev += num(r, 'revenue'); byDiv[d].cost += num(r, 'cost'); byDiv[d].freight += freightAED(r);
+    byDiv[d].bank += num(r, 'bankCharges'); byDiv[d].other += num(r, 'otherCharges'); byDiv[d].netGp += dealGP(r); byDiv[d].deals += 1;
   });
-
-  // Header
   const divHeaders = divisions.map(d => `<th style="color:${divColors[d] || 'var(--text-primary)'}">${escapeHtml(d)}</th>`).join('');
   $('bspl-div-pnl-head').innerHTML = `<tr><th style="text-align:left">Metric</th>${divHeaders}<th>Total</th></tr>`;
-
   const rows = [
-    { label: 'Revenue', key: 'rev', sign: '' },
-    { label: 'Purchase Cost', key: 'cost', sign: '−' },
-    { label: 'Gross Profit', key: null, isGross: true },
-    { label: 'Freight', key: 'freight', sign: '−' },
-    { label: 'Bank Charges', key: 'bank', sign: '−' },
-    { label: 'Other Charges', key: 'other', sign: '−' },
-    { label: 'Net Profit (GP)', key: 'netGp', isNet: true },
-    { label: 'Deals', key: 'deals', isCount: true },
-    { label: 'Net Margin %', key: null, isMargin: true },
+    { label: 'Revenue', key: 'rev' }, { label: 'Purchase Cost', key: 'cost' }, { label: 'Gross Profit', isGross: true },
+    { label: 'Freight', key: 'freight' }, { label: 'Bank Charges', key: 'bank' }, { label: 'Other Charges', key: 'other' },
+    { label: 'Net Profit', isNet: true }, { label: 'Deals', isCount: true }, { label: 'Net Margin %', isMargin: true }
   ];
-
-  const totalRev = divisions.reduce((s, d) => s + byDiv[d].rev, 0);
-  const totalCost = divisions.reduce((s, d) => s + byDiv[d].cost, 0);
-  const totalNetGp = divisions.reduce((s, d) => s + byDiv[d].netGp, 0);
-  const totalDeals = divisions.reduce((s, d) => s + byDiv[d].deals, 0);
-
+  const tRev = divisions.reduce((s, d) => s + byDiv[d].rev, 0), tCost = divisions.reduce((s, d) => s + byDiv[d].cost, 0);
+  const tNet = divisions.reduce((s, d) => s + byDiv[d].netGp, 0), tDeals = divisions.reduce((s, d) => s + byDiv[d].deals, 0);
   $('bspl-div-pnl-body').innerHTML = rows.map(row => {
-    const isNet = row.isNet;
-    const isGross = row.isGross;
-    const isCount = row.isCount;
-    const isMargin = row.isMargin;
-    const rowClass = (isNet || isGross) ? ' class="total-row"' : '';
-
+    const rowClass = (row.isNet || row.isGross) ? ' class="total-row"' : '';
     const cells = divisions.map(d => {
-      let val, cls = '';
-      if (isGross) { val = byDiv[d].rev - byDiv[d].cost; cls = val >= 0 ? 'pos' : 'neg'; return `<td class="${cls}">${fmtAED(val)}</td>`; }
-      if (isNet) { val = byDiv[d].netGp; cls = val >= 0 ? 'pos' : 'neg'; return `<td class="${cls}">${fmtAED(val)}</td>`; }
-      if (isCount) { return `<td>${byDiv[d].deals}</td>`; }
-      if (isMargin) { val = byDiv[d].rev > 0 ? byDiv[d].netGp / byDiv[d].rev : 0; cls = val >= 0 ? 'pos' : 'neg'; return `<td class="${cls}">${fmtPct(val)}</td>`; }
-      val = byDiv[d][row.key]; cls = '';
-      return `<td>${fmtAED(val)}</td>`;
+      if (row.isGross) { const v = byDiv[d].rev - byDiv[d].cost; return `<td class="${v >= 0 ? 'pos' : 'neg'}">${fmtAED(v)}</td>`; }
+      if (row.isNet) { const v = byDiv[d].netGp; return `<td class="${v >= 0 ? 'pos' : 'neg'}">${fmtAED(v)}</td>`; }
+      if (row.isCount) return `<td>${byDiv[d].deals}</td>`;
+      if (row.isMargin) { const v = byDiv[d].rev > 0 ? byDiv[d].netGp / byDiv[d].rev : 0; return `<td class="${v >= 0 ? 'pos' : 'neg'}">${fmtPct(v)}</td>`; }
+      return `<td>${fmtAED(byDiv[d][row.key])}</td>`;
     }).join('');
-
-    let totalVal, totalCls = '';
-    if (isGross) { totalVal = totalRev - totalCost; totalCls = totalVal >= 0 ? 'pos' : 'neg'; }
-    else if (isNet) { totalVal = totalNetGp; totalCls = totalVal >= 0 ? 'pos' : 'neg'; }
-    else if (isCount) { totalVal = totalDeals; }
-    else if (isMargin) { totalVal = totalRev > 0 ? totalNetGp / totalRev : 0; totalCls = totalVal >= 0 ? 'pos' : 'neg'; }
-    else { totalVal = divisions.reduce((s, d) => s + byDiv[d][row.key], 0); }
-
-    const totalCell = isCount ? `<td class="total-row">${totalVal}</td>` :
-                      isMargin ? `<td class="${totalCls} total-row">${fmtPct(totalVal)}</td>` :
-                      `<td class="${totalCls} total-row">${fmtAED(totalVal)}</td>`;
-
+    let tv, tc = '';
+    if (row.isGross) { tv = tRev - tCost; tc = tv >= 0 ? 'pos' : 'neg'; }
+    else if (row.isNet) { tv = tNet; tc = tv >= 0 ? 'pos' : 'neg'; }
+    else if (row.isCount) { tv = tDeals; }
+    else if (row.isMargin) { tv = tRev > 0 ? tNet / tRev : 0; tc = tv >= 0 ? 'pos' : 'neg'; }
+    else { tv = divisions.reduce((s, d) => s + byDiv[d][row.key], 0); }
+    const totalCell = row.isCount ? `<td class="total-row">${tv}</td>` : row.isMargin ? `<td class="${tc} total-row">${fmtPct(tv)}</td>` : `<td class="${tc} total-row">${fmtAED(tv)}</td>`;
     return `<tr${rowClass}><td>${row.label}</td>${cells}${totalCell}</tr>`;
   }).join('');
-
-  // Customer breakdown by division
-  renderEntityDivisionBreakdown(base, divisions, divColors, 'CUSTOMER', 'bspl-customer-div-breakdown');
-  // Vendor breakdown by division
-  renderEntityDivisionBreakdown(base, divisions, divColors, 'VENDOR', 'bspl-vendor-div-breakdown');
+  renderEntityDivisionBreakdown(base, divisions, divColors, 'customer', 'Customer', 'bspl-customer-div-breakdown');
+  renderEntityDivisionBreakdown(base, divisions, divColors, 'vendor', 'Vendor', 'bspl-vendor-div-breakdown');
 }
-
-function renderEntityDivisionBreakdown(base, divisions, divColors, entityKey, containerId) {
-  const entities = [...new Set(base.map(r => r[entityKey]).filter(Boolean))].sort();
+function renderEntityDivisionBreakdown(base, divisions, divColors, entityKey, entityLabel, containerId) {
+  const entities = [...new Set(base.map(r => rawVal(r, entityKey)).filter(Boolean))].sort();
   if (!entities.length) { $(containerId).innerHTML = ''; return; }
-
   const byEntity = {};
-  entities.forEach(e => {
-    byEntity[e] = {};
-    divisions.forEach(d => { byEntity[e][d] = { rev: 0, gp: 0, deals: 0 }; });
-  });
+  entities.forEach(e => { byEntity[e] = {}; divisions.forEach(d => { byEntity[e][d] = { rev: 0, gp: 0, deals: 0 }; }); });
   base.forEach(r => {
-    const e = r[entityKey]; const d = r['DIVISON'];
+    const e = rawVal(r, entityKey), d = rawVal(r, 'division');
     if (!e || !d || !byEntity[e] || !byEntity[e][d]) return;
-    byEntity[e][d].rev += toNum(r['SALES VALUE AED']);
-    byEntity[e][d].gp += toNum(r['GP']);
-    byEntity[e][d].deals += 1;
+    byEntity[e][d].rev += num(r, 'revenue'); byEntity[e][d].gp += dealGP(r); byEntity[e][d].deals += 1;
   });
-
   const divHeaders = divisions.map(d => `<th style="color:${divColors[d] || 'var(--text-primary)'}" colspan="2">${escapeHtml(d)}</th>`).join('');
   const divSubHeaders = divisions.map(() => `<th>Revenue</th><th>GP</th>`).join('');
-
   const rows = entities.map(e => {
-    const cells = divisions.map(d => {
-      const v = byEntity[e][d];
-      const gpCls = v.gp >= 0 ? 'pos' : 'neg';
-      return `<td>${v.deals > 0 ? fmtAED(v.rev) : '—'}</td><td class="${gpCls}">${v.deals > 0 ? fmtAED(v.gp) : '—'}</td>`;
-    }).join('');
+    const cells = divisions.map(d => { const v = byEntity[e][d]; return `<td>${v.deals > 0 ? fmtAED(v.rev) : '—'}</td><td class="${v.gp >= 0 ? 'pos' : 'neg'}">${v.deals > 0 ? fmtAED(v.gp) : '—'}</td>`; }).join('');
     return `<tr><td>${escapeHtml(e)}</td>${cells}</tr>`;
   }).join('');
-
-  $(containerId).innerHTML = `
-    <div style="overflow-x:auto">
-      <table class="div-pnl-table">
-        <thead>
-          <tr><th style="text-align:left">${entityKey === 'CUSTOMER' ? 'Customer' : 'Vendor'}</th>${divHeaders}</tr>
-          <tr style="background:var(--bg-elevated)"><th></th>${divSubHeaders}</tr>
-        </thead>
-        <tbody>${rows}</tbody>
-      </table>
-    </div>
-  `;
+  $(containerId).innerHTML = `<div style="overflow-x:auto"><table class="div-pnl-table"><thead><tr><th style="text-align:left">${entityLabel}</th>${divHeaders}</tr><tr style="background:var(--bg-elevated)"><th></th>${divSubHeaders}</tr></thead><tbody>${rows}</tbody></table></div>`;
 }
-
-/* ───────────────────────────────────────────────────────────────
-   INVESTOR PAGE
-   ─────────────────────────────────────────────────────────────── */
+/* ─── INVESTOR ─── */
 function renderInvestor() {
-  const completed = STATE.data.dc.filter(r => String(r['STATUS'] || '').toUpperCase() === 'COMPLETED');
-  const rev = completed.reduce((s, r) => s + toNum(r['SALES VALUE AED']), 0);
-  const gp = completed.reduce((s, r) => s + toNum(r['GP']), 0);
-  const customers = new Set(completed.map(r => r['CUSTOMER']).filter(Boolean)).size;
-
-  animateCount($('inv-revenue'), rev, 0, '', 'AED ');
-  animateCount($('inv-gp'), gp, 0, '', 'AED ');
+  const completed = STATE.data.dc.filter(isCompleted);
+  const rev = completed.reduce((s, r) => s + num(r, 'revenue'), 0);
+  const gp = completed.reduce((s, r) => s + dealGP(r), 0);
+  const customers = new Set(completed.map(r => rawVal(r, 'customer')).filter(Boolean)).size;
+  animateCount($('inv-revenue'), rev, 0, '', CUR() + ' ');
+  animateCount($('inv-gp'), gp, 0, '', CUR() + ' ');
   animateCount($('inv-deals'), completed.length);
   animateCount($('inv-customers'), customers);
-
-  // Reuse monthly chart but cleaner
-  const t = getChartTheme();
-  const monthly = {};
+  const t = getChartTheme(); const monthly = {};
   completed.forEach(d => {
-    const date = parseDate(d['INV DT']);
-    if (!date) return;
+    const date = parseDate(rawVal(d, 'invoiceDate')); if (!date) return;
     const key = date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, '0');
-    if (!monthly[key]) monthly[key] = 0;
-    monthly[key] += toNum(d['SALES VALUE AED']);
+    monthly[key] = (monthly[key] || 0) + num(d, 'revenue');
   });
   const keys = Object.keys(monthly).sort();
-  const labels = keys.map(k => {
-    const [y, m] = k.split('-');
-    return new Date(y, m - 1).toLocaleDateString('en', { month: 'short', year: '2-digit' });
-  });
-
+  const labels = keys.map(k => { const [y, m] = k.split('-'); return new Date(y, m - 1).toLocaleDateString('en', { month: 'short', year: '2-digit' }); });
   initChart('chart-inv-trend', {
-    backgroundColor: 'transparent',
-    grid: { left: 50, right: 30, top: 20, bottom: 30 },
-    tooltip: { trigger: 'axis', backgroundColor: t.tooltipBg, borderColor: t.tooltipBorder, borderWidth: 1, textStyle: { color: t.tooltipText }, formatter: (p) => `<div style="font-weight:600">${p[0].axisValue}</div><div style="font-family:JetBrains Mono">AED ${fmtAED(p[0].value)}</div>` },
+    backgroundColor: 'transparent', grid: { left: 50, right: 30, top: 20, bottom: 30 },
+    tooltip: { trigger: 'axis', backgroundColor: t.tooltipBg, borderColor: t.tooltipBorder, borderWidth: 1, textStyle: { color: t.tooltipText }, formatter: (p) => `<div style="font-weight:600">${p[0].axisValue}</div><div style="font-family:JetBrains Mono">${money(p[0].value)}</div>` },
     xAxis: { type: 'category', data: labels, axisLine: { lineStyle: { color: t.axisColor } }, axisLabel: { color: t.textColor, fontSize: 10 }, axisTick: { show: false } },
     yAxis: { type: 'value', axisLine: { show: false }, axisTick: { show: false }, axisLabel: { color: t.textColor, fontSize: 10, formatter: (v) => fmtAED(v) }, splitLine: { lineStyle: { color: t.gridColor } } },
-    series: [{
-      type: 'line', smooth: true, data: keys.map(k => monthly[k]),
-      lineStyle: { color: '#FE2B32', width: 3 },
-      areaStyle: { color: { type: 'linear', x: 0, y: 0, x2: 0, y2: 1, colorStops: [{ offset: 0, color: 'rgba(254,43,50,0.35)' }, { offset: 1, color: 'rgba(254,43,50,0)' }] } },
-      itemStyle: { color: '#FE2B32' },
-      symbol: 'circle', symbolSize: 8,
-      animationDuration: 1200
-    }]
+    series: [{ type: 'line', smooth: true, data: keys.map(k => monthly[k]), lineStyle: { color: '#FE2B32', width: 3 }, areaStyle: { color: { type: 'linear', x: 0, y: 0, x2: 0, y2: 1, colorStops: [{ offset: 0, color: 'rgba(254,43,50,0.35)' }, { offset: 1, color: 'rgba(254,43,50,0)' }] } }, itemStyle: { color: '#FE2B32' }, symbol: 'circle', symbolSize: 8, animationDuration: 1200 }]
   });
-
-  // Division mix
   const byDiv = {};
-  completed.forEach(d => {
-    const div = d['DIVISON'] || 'OTHER';
-    byDiv[div] = (byDiv[div] || 0) + toNum(d['SALES VALUE AED']);
-  });
+  completed.forEach(d => { const dv = rawVal(d, 'division') || 'OTHER'; byDiv[dv] = (byDiv[dv] || 0) + num(d, 'revenue'); });
   const colors = { RBR: '#FE2B32', STL: '#FF41A5', ALU: '#FFC533', NFS: '#4d9fff', SST: '#00d4aa' };
   const data = Object.entries(byDiv).filter(([k, v]) => v > 0).map(([k, v]) => ({ name: k, value: Math.round(v), itemStyle: { color: colors[k] || '#888' } }));
-
   initChart('chart-inv-mix', {
     backgroundColor: 'transparent',
-    tooltip: { trigger: 'item', backgroundColor: t.tooltipBg, borderColor: t.tooltipBorder, borderWidth: 1, textStyle: { color: t.tooltipText }, formatter: (p) => `<div style="font-weight:600">${p.name}</div><div style="font-family:JetBrains Mono">AED ${fmtAED(p.value)} · ${p.percent}%</div>` },
-    series: [{
-      type: 'pie', radius: ['55%', '80%'], center: ['50%', '50%'],
-      itemStyle: { borderColor: t.tooltipBg, borderWidth: 4 },
-      label: { color: t.textColor, formatter: '{b}\n{d}%', fontSize: 13, fontWeight: 600 },
-      data,
-      animationDuration: 1200
-    }]
+    tooltip: { trigger: 'item', backgroundColor: t.tooltipBg, borderColor: t.tooltipBorder, borderWidth: 1, textStyle: { color: t.tooltipText }, formatter: (p) => `<div style="font-weight:600">${p.name}</div><div style="font-family:JetBrains Mono">${money(p.value)} · ${p.percent}%</div>` },
+    series: [{ type: 'pie', radius: ['55%', '80%'], center: ['50%', '50%'], itemStyle: { borderColor: t.tooltipBg, borderWidth: 4 }, label: { color: t.textColor, formatter: '{b}\n{d}%', fontSize: 13, fontWeight: 600 }, data, animationDuration: 1200 }]
   });
 }
 
-/* ───────────────────────────────────────────────────────────────
-   FX PAGE
-   ─────────────────────────────────────────────────────────────── */
+/* ─── FX (columns left fixed; internal use) ─── */
 function renderFX() {
   const t = getChartTheme();
-  const fx = STATE.data.fx
-    .filter(r => r['DATE'])
-    .sort((a, b) => parseDate(a['DATE']) - parseDate(b['DATE']));
-
+  const fx = STATE.data.fx.filter(r => r['DATE']).sort((a, b) => parseDate(a['DATE']) - parseDate(b['DATE']));
   if (!fx.length) return;
-
   const dates = fx.map(r => parseDate(r['DATE'])).filter(Boolean).map(d => d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }));
-  const gbp = fx.map(r => toNum(r['GBP']));
-  const eur = fx.map(r => toNum(r['EUR']));
-  const usd = fx.map(r => toNum(r['USD']));
-
   initChart('chart-fx', {
-    backgroundColor: 'transparent',
-    grid: { left: 60, right: 30, top: 40, bottom: 50 },
+    backgroundColor: 'transparent', grid: { left: 60, right: 30, top: 40, bottom: 50 },
     tooltip: { trigger: 'axis', backgroundColor: t.tooltipBg, borderColor: t.tooltipBorder, borderWidth: 1, textStyle: { color: t.tooltipText } },
     legend: { data: ['GBP', 'EUR', 'USD'], top: 0, textStyle: { color: t.textColor, fontSize: 11 } },
     xAxis: { type: 'category', data: dates, axisLine: { lineStyle: { color: t.axisColor } }, axisLabel: { color: t.textColor, fontSize: 9 }, axisTick: { show: false } },
     yAxis: { type: 'value', scale: true, axisLine: { show: false }, axisTick: { show: false }, axisLabel: { color: t.textColor, fontSize: 10 }, splitLine: { lineStyle: { color: t.gridColor } } },
     series: [
-      { name: 'GBP', type: 'line', data: gbp, smooth: true, lineStyle: { color: '#FFC533', width: 2 }, itemStyle: { color: '#FFC533' }, symbol: 'none' },
-      { name: 'EUR', type: 'line', data: eur, smooth: true, lineStyle: { color: '#FF41A5', width: 2 }, itemStyle: { color: '#FF41A5' }, symbol: 'none' },
-      { name: 'USD', type: 'line', data: usd, smooth: true, lineStyle: { color: '#00d4aa', width: 2 }, itemStyle: { color: '#00d4aa' }, symbol: 'none' }
-    ],
-    animationDuration: 1200
+      { name: 'GBP', type: 'line', data: fx.map(r => toNum(r['GBP'])), smooth: true, lineStyle: { color: '#FFC533', width: 2 }, itemStyle: { color: '#FFC533' }, symbol: 'none' },
+      { name: 'EUR', type: 'line', data: fx.map(r => toNum(r['EUR'])), smooth: true, lineStyle: { color: '#FF41A5', width: 2 }, itemStyle: { color: '#FF41A5' }, symbol: 'none' },
+      { name: 'USD', type: 'line', data: fx.map(r => toNum(r['USD'])), smooth: true, lineStyle: { color: '#00d4aa', width: 2 }, itemStyle: { color: '#00d4aa' }, symbol: 'none' }
+    ], animationDuration: 1200
   });
 }
 
-/* ───────────────────────────────────────────────────────────────
-   CHART INIT HELPER
-   ─────────────────────────────────────────────────────────────── */
-function initChart(id, options) {
-  const el = $(id);
-  if (!el) return;
-  if (STATE.charts[id]) {
-    STATE.charts[id].dispose();
-  }
-  const chart = echarts.init(el, null, { renderer: 'canvas' });
-  chart.setOption(options);
-  STATE.charts[id] = chart;
+/* ─── ADMIN TERMINAL ─── */
+function setupAdmin() {
+  $('admin-btn').addEventListener('click', () => { window.location.hash = 'admin'; switchPage('admin'); });
+  $('adm-lock-btn').addEventListener('click', unlockAdmin);
+  $('adm-lock-input').addEventListener('keydown', e => { if (e.key === 'Enter') unlockAdmin(); });
+  $('adm-save').addEventListener('click', saveAdmin);
+  $('adm-reset').addEventListener('click', resetAdmin);
+  $('adm-export').addEventListener('click', exportSettings);
+  $('adm-import').addEventListener('change', importSettings);
+}
+function unlockAdmin() {
+  if ($('adm-lock-input').value === SETTINGS.adminPassword) {
+    sessionStorage.setItem('dc-admin-ok', '1'); $('adm-lock-err').style.display = 'none'; renderAdmin();
+  } else { $('adm-lock-err').style.display = 'block'; }
+}
+function renderAdmin() {
+  const unlocked = sessionStorage.getItem('dc-admin-ok') === '1';
+  $('adm-lock').style.display = unlocked ? 'none' : 'flex';
+  $('adm-content').style.display = unlocked ? 'block' : 'none';
+  if (!unlocked) return;
+  const headers = STATE.headers.dc || [];
+  $('adm-columns').innerHTML = COLUMN_FIELDS.map(([key, label]) => {
+    const cur = SETTINGS.columns[key];
+    const opts = [...new Set([...headers, cur].filter(Boolean))];
+    return `<div class="adm-field"><label>${label}</label><select id="adm-col-${key}">${opts.map(o => `<option value="${escapeHtml(o)}"${o === cur ? ' selected' : ''}>${escapeHtml(o)}</option>`).join('')}</select></div>`;
+  }).join('');
+  $('adm-numsys').value = SETTINGS.numberSystem;
+  $('adm-decimals').value = SETTINGS.decimals;
+  $('adm-currency').value = SETTINGS.currencyLabel;
+  $('adm-theme').value = SETTINGS.defaultTheme;
+  $('adm-page').value = SETTINGS.defaultPage;
+  $('adm-usdaed').value = SETTINGS.freight.usdToAed;
+  $('adm-freight-usd').checked = !!SETTINGS.freight.inUSD;
+  $('adm-netmode').value = SETTINGS.netProfitMode;
+  $('adm-completed').value = SETTINGS.completedStatus;
+  $('adm-cancelled').value = SETTINGS.cancelledStatus;
+  $('adm-margin-hi').value = SETTINGS.marginThresholds.healthy;
+  $('adm-margin-lo').value = SETTINGS.marginThresholds.caution;
+  $('adm-refresh').value = SETTINGS.refreshSeconds;
+  $('adm-adminpass').value = SETTINGS.adminPassword;
+}
+function saveAdmin() {
+  COLUMN_FIELDS.forEach(([key]) => { const el = $('adm-col-' + key); if (el) SETTINGS.columns[key] = el.value; });
+  SETTINGS.numberSystem = $('adm-numsys').value;
+  SETTINGS.decimals = Math.max(0, Math.min(4, parseInt($('adm-decimals').value) || 0));
+  SETTINGS.currencyLabel = ($('adm-currency').value || 'AED').trim();
+  SETTINGS.defaultTheme = $('adm-theme').value;
+  SETTINGS.defaultPage = $('adm-page').value;
+  SETTINGS.freight.usdToAed = parseFloat($('adm-usdaed').value) || 1;
+  SETTINGS.freight.inUSD = $('adm-freight-usd').checked;
+  SETTINGS.netProfitMode = $('adm-netmode').value;
+  SETTINGS.completedStatus = ($('adm-completed').value || 'COMPLETED').trim();
+  SETTINGS.cancelledStatus = ($('adm-cancelled').value || 'CANCELLED').trim();
+  SETTINGS.marginThresholds.healthy = parseFloat($('adm-margin-hi').value) || 5;
+  SETTINGS.marginThresholds.caution = parseFloat($('adm-margin-lo').value) || 2;
+  SETTINGS.refreshSeconds = Math.max(10, parseInt($('adm-refresh').value) || 60);
+  SETTINGS.adminPassword = $('adm-adminpass').value || SETTINGS.adminPassword;
+  saveSettings();
+  $('status-text').textContent = 'Live · ' + SETTINGS.refreshSeconds + 's';
+  startAutoRefresh(); populateFilterOptions(); renderAllPages();
+  const st = $('adm-status'); st.textContent = '✓ Saved & applied'; st.style.opacity = '1';
+  setTimeout(() => st.style.opacity = '0', 2500);
+}
+function resetAdmin() {
+  if (!confirm('Reset ALL settings back to defaults? This cannot be undone.')) return;
+  SETTINGS = clone(DEFAULT_SETTINGS); saveSettings(); renderAdmin(); populateFilterOptions(); renderAllPages();
+  const st = $('adm-status'); st.textContent = '✓ Reset to defaults'; st.style.opacity = '1';
+  setTimeout(() => st.style.opacity = '0', 2500);
+}
+function exportSettings() {
+  const blob = new Blob([JSON.stringify(SETTINGS, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'dc-dashboard-settings.json'; a.click();
+  URL.revokeObjectURL(a.href);
+}
+function importSettings(e) {
+  const file = e.target.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      SETTINGS = deepMerge(clone(DEFAULT_SETTINGS), JSON.parse(reader.result));
+      saveSettings(); renderAdmin(); populateFilterOptions(); renderAllPages();
+      const st = $('adm-status'); st.textContent = '✓ Settings imported'; st.style.opacity = '1';
+      setTimeout(() => st.style.opacity = '0', 2500);
+    } catch (err) { alert('Invalid settings file.'); }
+  };
+  reader.readAsText(file); e.target.value = '';
 }
 
-// Resize charts on window resize
-window.addEventListener('resize', debounce(() => {
-  Object.values(STATE.charts).forEach(c => c && c.resize());
-}, 150));
-
-// Handle hash change for hidden FX page
+/* ─── CHART HELPER + GLOBAL LISTENERS ─── */
+function initChart(id, options) {
+  const el = $(id); if (!el) return;
+  if (STATE.charts[id]) STATE.charts[id].dispose();
+  const chart = echarts.init(el, null, { renderer: 'canvas' });
+  chart.setOption(options); STATE.charts[id] = chart;
+}
+window.addEventListener('resize', debounce(() => { Object.values(STATE.charts).forEach(c => c && c.resize()); }, 150));
 window.addEventListener('hashchange', () => {
   if (window.location.hash === '#fx') switchPage('fx');
+  else if (window.location.hash === '#admin') switchPage('admin');
 });
-
 </script>
 </body>
 </html>
