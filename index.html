@@ -90,6 +90,19 @@ a { color: inherit; text-decoration: none; }
   background-size: 48px 48px;
   mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black 30%, transparent 100%);
 }
+.scan-overlay {
+  position: fixed; inset: 0; z-index: 3; pointer-events: none; opacity: 0;
+  transition: opacity 0.4s;
+  background: repeating-linear-gradient(to bottom, rgba(255,255,255,0.035) 0px, rgba(255,255,255,0.035) 1px, transparent 1px, transparent 3px);
+  mix-blend-mode: overlay;
+}
+body.scanlines-on .scan-overlay { opacity: 1; }
+body.scanlines-on .scan-overlay::after {
+  content: ''; position: absolute; left: 0; right: 0; height: 120px;
+  background: linear-gradient(to bottom, transparent, rgba(255,255,255,0.025), transparent);
+  animation: scanSweep 7s linear infinite;
+}
+@keyframes scanSweep { 0% { top: -120px; } 100% { top: 100%; } }
 #login-screen { position: fixed; inset: 0; z-index: 1000; display: flex; align-items: center; justify-content: center; background: var(--bg-primary); padding: 24px; }
 #login-screen.hidden { display: none; }
 .login-bg-glow { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
@@ -303,12 +316,24 @@ a { color: inherit; text-decoration: none; }
 .adm-check input { accent-color: var(--brand-red); width: 15px; height: 15px; cursor: pointer; }
 .adm-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 6px; position: sticky; bottom: 0; background: linear-gradient(transparent, var(--bg-primary) 30%); padding: 14px 0 4px; }
 .adm-status { font-size: 12px; color: var(--status-success); opacity: 0; transition: opacity 0.3s; font-family: var(--font-mono); }
+.adm-sub { font-size: 10px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-secondary); margin: 20px 0 10px; padding-top: 14px; border-top: 1px dashed var(--border-subtle); }
+.adm-field input[type=color] { -webkit-appearance: none; appearance: none; width: 100%; height: 34px; background: var(--bg-elevated); border: 1px solid var(--border-default); border-radius: var(--radius-sm); padding: 3px; cursor: pointer; }
+.adm-field input[type=color]::-webkit-color-swatch-wrapper { padding: 0; }
+.adm-field input[type=color]::-webkit-color-swatch { border: none; border-radius: 3px; }
+.adm-field input[type=range] { -webkit-appearance: none; appearance: none; width: 100%; height: 4px; border-radius: 2px; background: var(--border-default); outline: none; margin: 12px 0 4px; }
+.adm-field input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 15px; height: 15px; border-radius: 50%; background: var(--brand-red); cursor: pointer; box-shadow: 0 0 8px var(--glow-red); }
+.adm-field input[type=range]::-moz-range-thumb { width: 15px; height: 15px; border: none; border-radius: 50%; background: var(--brand-red); cursor: pointer; }
+.adm-preset { background: var(--bg-elevated); border: 1px solid var(--border-default); border-radius: var(--radius-sm); padding: 8px 14px; font-size: 12px; font-weight: 500; color: var(--text-secondary); font-family: var(--font-mono); transition: all var(--transition-base); display: flex; align-items: center; gap: 8px; }
+.adm-preset:hover { color: var(--text-primary); border-color: var(--border-strong); transform: translateY(-1px); }
+.adm-preset .swatches { display: flex; gap: 3px; }
+.adm-preset .sw { width: 9px; height: 9px; border-radius: 2px; }
 @media (max-width: 1100px) { .adm-grid { grid-template-columns: repeat(2, 1fr); } }
 @media (max-width: 700px) { .adm-grid, .adm-grid.cols-2 { grid-template-columns: 1fr; } }
 </style>
 </head>
 <body>
 <div class="bg-grid"></div>
+<div class="scan-overlay"></div>
 <div id="login-screen">
   <div class="login-bg-glow"></div>
   <div class="login-card">
@@ -547,8 +572,59 @@ a { color: inherit; text-decoration: none; }
           </div>
         </div>
 
+        <div class="adm-section">
+          <div class="adm-section-title">// 5 — Appearance</div>
+          <div class="adm-section-desc">Every visual token is editable and previews live as you change it. Start from a preset, then fine-tune. "Save & Apply" persists it; Export/Import moves the whole look between browsers.</div>
+
+          <div style="margin-bottom:18px">
+            <div style="font-size:10px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:var(--text-tertiary);margin-bottom:8px">Preset themes</div>
+            <div id="adm-presets" style="display:flex;gap:8px;flex-wrap:wrap"></div>
+          </div>
+
+          <div class="adm-sub">Accent colours</div>
+          <div class="adm-grid" id="adm-accents"></div>
+
+          <div class="adm-sub">Chart palette · 8-slot rotation for pie/segment charts</div>
+          <div class="adm-grid" id="adm-series"></div>
+
+          <div class="adm-sub">Surfaces · backgrounds (applied in dark mode)</div>
+          <div class="adm-grid" id="adm-surfaces"></div>
+
+          <div class="adm-sub">Text &amp; borders</div>
+          <div class="adm-grid">
+            <div class="adm-field"><label>Text colour</label><input type="color" id="adm-text-color"/></div>
+            <div class="adm-field"><label>Text · secondary opacity <span id="adm-text-secA-v" class="hint"></span></label><input type="range" id="adm-text-secA" min="0.2" max="1" step="0.02"/></div>
+            <div class="adm-field"><label>Text · tertiary opacity <span id="adm-text-terA-v" class="hint"></span></label><input type="range" id="adm-text-terA" min="0.1" max="0.9" step="0.02"/></div>
+            <div class="adm-field"><label>Text · muted opacity <span id="adm-text-mutA-v" class="hint"></span></label><input type="range" id="adm-text-mutA" min="0.05" max="0.6" step="0.02"/></div>
+            <div class="adm-field"><label>Border colour</label><input type="color" id="adm-border-color"/></div>
+            <div class="adm-field"><label>Border · subtle opacity <span id="adm-border-subA-v" class="hint"></span></label><input type="range" id="adm-border-subA" min="0.02" max="0.4" step="0.01"/></div>
+            <div class="adm-field"><label>Border · default opacity <span id="adm-border-defA-v" class="hint"></span></label><input type="range" id="adm-border-defA" min="0.04" max="0.5" step="0.01"/></div>
+            <div class="adm-field"><label>Border · strong opacity <span id="adm-border-strA-v" class="hint"></span></label><input type="range" id="adm-border-strA" min="0.08" max="0.6" step="0.01"/></div>
+          </div>
+
+          <div class="adm-sub">Typography</div>
+          <div class="adm-grid">
+            <div class="adm-field"><label>Display font</label><input type="text" id="adm-font-display"/><span class="hint">Headings. Must be a loaded/web-safe family</span></div>
+            <div class="adm-field"><label>Body font</label><input type="text" id="adm-font-body"/></div>
+            <div class="adm-field"><label>Mono font</label><input type="text" id="adm-font-mono"/><span class="hint">Numbers &amp; codes</span></div>
+            <div class="adm-field"><label>Base font size (px) <span id="adm-basefont-v" class="hint"></span></label><input type="range" id="adm-basefont" min="12" max="18" step="1"/></div>
+          </div>
+
+          <div class="adm-sub">Shape &amp; effects</div>
+          <div class="adm-grid">
+            <div class="adm-field"><label>Radius · small (px) <span id="adm-rad-sm-v" class="hint"></span></label><input type="range" id="adm-rad-sm" min="0" max="16" step="1"/></div>
+            <div class="adm-field"><label>Radius · medium (px) <span id="adm-rad-md-v" class="hint"></span></label><input type="range" id="adm-rad-md" min="0" max="20" step="1"/></div>
+            <div class="adm-field"><label>Radius · large (px) <span id="adm-rad-lg-v" class="hint"></span></label><input type="range" id="adm-rad-lg" min="0" max="28" step="1"/></div>
+            <div class="adm-field"><label>Radius · x-large (px) <span id="adm-rad-xl-v" class="hint"></span></label><input type="range" id="adm-rad-xl" min="0" max="36" step="1"/></div>
+            <div class="adm-field"><label>Glow intensity <span id="adm-glow-v" class="hint"></span></label><input type="range" id="adm-glow" min="0" max="1" step="0.05"/></div>
+            <div class="adm-field"><label>Grid density <span id="adm-grid-v" class="hint"></span></label><input type="range" id="adm-grid" min="0" max="0.2" step="0.005"/></div>
+            <div class="adm-field"><label>Animation speed <span id="adm-anim-v" class="hint"></span></label><input type="range" id="adm-anim" min="0.4" max="2" step="0.1"/></div>
+            <label class="adm-check"><input type="checkbox" id="adm-scanlines"/> CRT scanline overlay</label>
+          </div>
+        </div>
+
         <div class="adm-actions">
-          <button class="filter-btn primary" id="adm-save" style="margin-top:0">Save & Apply</button>
+          <button class="filter-btn primary" id="adm-save" style="margin-top:0">Save &amp; Apply</button>
           <button class="filter-btn" id="adm-reset" style="margin-top:0">Reset to defaults</button>
           <button class="filter-btn" id="adm-export" style="margin-top:0">Export JSON</button>
           <label class="filter-btn" style="margin-top:0;cursor:pointer">Import JSON<input type="file" id="adm-import" accept="application/json" style="display:none"/></label>
@@ -598,7 +674,71 @@ const DEFAULT_SETTINGS = {
   cancelledStatus: 'CANCELLED',
   marginThresholds: { healthy: 5, caution: 2 },
   refreshSeconds: 60,
-  adminPassword: 'admin2025'
+  adminPassword: 'admin2025',
+  appearance: {
+    accent: { red: '#FF2D2D', pink: '#FF45AC', amber: PAL.amber, green: '#00E5A0', info: '#4D9FFF', c6: '#9B6CFF', c7: '#FF8A3D', c8: '#3DE0E0' },
+    chartSeries: ['#FF2D2D', '#FF45AC', PAL.amber, '#00E5A0', '#4D9FFF', '#9B6CFF', '#FF8A3D', '#3DE0E0'],
+    bg: { primary: '#050507', secondary: '#0a0a0e', tertiary: '#101017', card: '#0b0b11', elevated: '#15151d' },
+    hoverA: 0.04,
+    text: { color: '#ffffff', secondaryA: 0.6, tertiaryA: 0.38, mutedA: 0.2 },
+    border: { color: '#ffffff', subtleA: 0.07, defaultA: 0.12, strongA: 0.22 },
+    fonts: { display: 'Syne', body: 'DM Sans', mono: 'JetBrains Mono' },
+    baseFontPx: 14,
+    radius: { sm: 3, md: 5, lg: 8, xl: 12 },
+    glow: 0.5,
+    gridOpacity: 0.05,
+    animSpeed: 1,
+    scanlines: true
+  }
+};
+
+/* Preset theme packs — each is a full appearance object */
+const PRESETS = {
+  'Command Center': {
+    accent: { red: '#FF2D2D', pink: '#FF45AC', amber: PAL.amber, green: '#00E5A0', info: '#4D9FFF', c6: '#9B6CFF', c7: '#FF8A3D', c8: '#3DE0E0' },
+    chartSeries: ['#FF2D2D', '#FF45AC', PAL.amber, '#00E5A0', '#4D9FFF', '#9B6CFF', '#FF8A3D', '#3DE0E0'],
+    bg: { primary: '#050507', secondary: '#0a0a0e', tertiary: '#101017', card: '#0b0b11', elevated: '#15151d' },
+    hoverA: 0.04, text: { color: '#ffffff', secondaryA: 0.6, tertiaryA: 0.38, mutedA: 0.2 },
+    border: { color: '#ffffff', subtleA: 0.07, defaultA: 0.12, strongA: 0.22 },
+    fonts: { display: 'Syne', body: 'DM Sans', mono: 'JetBrains Mono' }, baseFontPx: 14,
+    radius: { sm: 3, md: 5, lg: 8, xl: 12 }, glow: 0.5, gridOpacity: 0.05, animSpeed: 1, scanlines: true
+  },
+  'Blackout': {
+    accent: { red: '#FF3B3B', pink: '#FF5CB8', amber: '#FFD23F', green: '#19F9B6', info: '#5AA9FF', c6: '#B07CFF', c7: '#FF9A4D', c8: '#4DEAEA' },
+    chartSeries: ['#FF3B3B', '#FF5CB8', '#FFD23F', '#19F9B6', '#5AA9FF', '#B07CFF', '#FF9A4D', '#4DEAEA'],
+    bg: { primary: '#000000', secondary: '#050505', tertiary: '#0a0a0a', card: '#070707', elevated: '#121212' },
+    hoverA: 0.05, text: { color: '#ffffff', secondaryA: 0.58, tertiaryA: 0.34, mutedA: 0.18 },
+    border: { color: '#ffffff', subtleA: 0.06, defaultA: 0.1, strongA: 0.2 },
+    fonts: { display: 'Syne', body: 'DM Sans', mono: 'JetBrains Mono' }, baseFontPx: 14,
+    radius: { sm: 2, md: 3, lg: 5, xl: 8 }, glow: 0.65, gridOpacity: 0.04, animSpeed: 1, scanlines: true
+  },
+  'Cyber Neon': {
+    accent: { red: '#FF005C', pink: '#FF2EC4', amber: '#FFE600', green: '#00FFC6', info: '#00C8FF', c6: '#B14DFF', c7: '#FF6B00', c8: '#19FFE0' },
+    chartSeries: ['#00FFC6', '#FF2EC4', '#00C8FF', '#FFE600', '#FF005C', '#B14DFF', '#FF6B00', '#19FFE0'],
+    bg: { primary: '#04040a', secondary: '#080816', tertiary: '#0d0d20', card: '#090914', elevated: '#14142a' },
+    hoverA: 0.05, text: { color: '#eafcff', secondaryA: 0.62, tertiaryA: 0.4, mutedA: 0.22 },
+    border: { color: '#00C8FF', subtleA: 0.1, defaultA: 0.16, strongA: 0.3 },
+    fonts: { display: 'Syne', body: 'DM Sans', mono: 'JetBrains Mono' }, baseFontPx: 14,
+    radius: { sm: 2, md: 4, lg: 6, xl: 10 }, glow: 0.8, gridOpacity: 0.07, animSpeed: 1.1, scanlines: true
+  },
+  'Plasma': {
+    accent: { red: '#FF4D6D', pink: '#C44DFF', amber: '#FFB84D', green: '#4DFFB0', info: '#4D7DFF', c6: '#E04DFF', c7: '#FF7A4D', c8: '#4DD9FF' },
+    chartSeries: ['#C44DFF', '#FF4D6D', '#4D7DFF', '#FFB84D', '#4DFFB0', '#E04DFF', '#FF7A4D', '#4DD9FF'],
+    bg: { primary: '#0a0612', secondary: '#120a1f', tertiary: '#1a0f2e', card: '#130b22', elevated: '#221538' },
+    hoverA: 0.05, text: { color: '#f6eeff', secondaryA: 0.62, tertiaryA: 0.4, mutedA: 0.22 },
+    border: { color: '#C44DFF', subtleA: 0.09, defaultA: 0.14, strongA: 0.26 },
+    fonts: { display: 'Syne', body: 'DM Sans', mono: 'JetBrains Mono' }, baseFontPx: 14,
+    radius: { sm: 4, md: 8, lg: 12, xl: 18 }, glow: 0.7, gridOpacity: 0.06, animSpeed: 1, scanlines: false
+  },
+  'Matrix': {
+    accent: { red: '#FF5555', pink: '#33FF99', amber: '#B6FF00', green: '#39FF14', info: '#00FFAA', c6: '#7CFF6B', c7: '#C8FF4D', c8: '#00E676' },
+    chartSeries: ['#39FF14', '#00FFAA', '#B6FF00', '#7CFF6B', '#00E676', '#33FF99', '#C8FF4D', '#FF5555'],
+    bg: { primary: '#030503', secondary: '#060a06', tertiary: '#0a100a', card: '#070b07', elevated: '#0f160f' },
+    hoverA: 0.05, text: { color: '#d6ffd6', secondaryA: 0.6, tertiaryA: 0.38, mutedA: 0.2 },
+    border: { color: '#39FF14', subtleA: 0.08, defaultA: 0.14, strongA: 0.26 },
+    fonts: { display: 'Syne', body: 'DM Sans', mono: 'JetBrains Mono' }, baseFontPx: 14,
+    radius: { sm: 2, md: 3, lg: 5, xl: 8 }, glow: 0.7, gridOpacity: 0.06, animSpeed: 1, scanlines: true
+  }
 };
 
 const COLUMN_FIELDS = [
@@ -623,6 +763,74 @@ function loadSettings() {
 }
 let SETTINGS = loadSettings();
 function saveSettings() { localStorage.setItem('dc-settings', JSON.stringify(SETTINGS)); }
+
+/* ─── APPEARANCE ENGINE ─── */
+function rgba(hex, a) {
+  if (!hex) return `rgba(0,0,0,${a})`;
+  if (hex[0] !== '#') return hex;
+  let h = hex.replace('#', '');
+  if (h.length === 3) h = h.split('').map(c => c + c).join('');
+  const n = parseInt(h, 16);
+  return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},${a})`;
+}
+const PAL = {
+  get red() { return SETTINGS.appearance.accent.red; },
+  get pink() { return SETTINGS.appearance.accent.pink; },
+  get amber() { return SETTINGS.appearance.accent.amber; },
+  get green() { return SETTINGS.appearance.accent.green; },
+  get info() { return SETTINGS.appearance.accent.info; },
+  get c6() { return SETTINGS.appearance.accent.c6; },
+  get c7() { return SETTINGS.appearance.accent.c7; },
+  get c8() { return SETTINGS.appearance.accent.c8; },
+  get series() { return SETTINGS.appearance.chartSeries; }
+};
+function applyAppearance() {
+  const a = SETTINGS.appearance, s = document.documentElement.style;
+  const dark = document.documentElement.getAttribute('data-theme') !== 'light';
+  s.setProperty('--brand-red', a.accent.red);
+  s.setProperty('--brand-pink', a.accent.pink);
+  s.setProperty('--brand-amber', a.accent.amber);
+  s.setProperty('--status-success', a.accent.green);
+  s.setProperty('--status-warning', a.accent.amber);
+  s.setProperty('--status-danger', a.accent.red);
+  s.setProperty('--status-info', a.accent.info);
+  s.setProperty('--glow-red', rgba(a.accent.red, a.glow));
+  s.setProperty('--glow-pink', rgba(a.accent.pink, a.glow));
+  s.setProperty('--glow-amber', rgba(a.accent.amber, a.glow));
+  s.setProperty('--glow-green', rgba(a.accent.green, a.glow));
+  s.setProperty('--shadow-glow-red', `0 0 40px ${rgba(a.accent.red, a.glow * 0.35)}`);
+  s.setProperty('--font-display', `'${a.fonts.display}', sans-serif`);
+  s.setProperty('--font-body', `'${a.fonts.body}', sans-serif`);
+  s.setProperty('--font-mono', `'${a.fonts.mono}', monospace`);
+  document.body.style.fontSize = a.baseFontPx + 'px';
+  s.setProperty('--radius-sm', a.radius.sm + 'px');
+  s.setProperty('--radius-md', a.radius.md + 'px');
+  s.setProperty('--radius-lg', a.radius.lg + 'px');
+  s.setProperty('--radius-xl', a.radius.xl + 'px');
+  const sp = a.animSpeed || 1;
+  s.setProperty('--transition-base', (0.25 / sp).toFixed(3) + 's cubic-bezier(0.4,0,0.2,1)');
+  s.setProperty('--transition-smooth', (0.4 / sp).toFixed(3) + 's cubic-bezier(0.16,1,0.3,1)');
+  s.setProperty('--grid-color', `rgba(${dark ? '255,255,255' : '0,0,0'},${a.gridOpacity})`);
+  document.body.classList.toggle('scanlines-on', !!a.scanlines);
+  const surfaces = ['--bg-primary', '--bg-secondary', '--bg-tertiary', '--bg-card', '--bg-elevated', '--bg-hover', '--text-primary', '--text-secondary', '--text-tertiary', '--text-muted', '--border-subtle', '--border-default', '--border-strong'];
+  if (dark) {
+    s.setProperty('--bg-primary', a.bg.primary);
+    s.setProperty('--bg-secondary', a.bg.secondary);
+    s.setProperty('--bg-tertiary', a.bg.tertiary);
+    s.setProperty('--bg-card', a.bg.card);
+    s.setProperty('--bg-elevated', a.bg.elevated);
+    s.setProperty('--bg-hover', rgba(a.text.color, a.hoverA));
+    s.setProperty('--text-primary', a.text.color);
+    s.setProperty('--text-secondary', rgba(a.text.color, a.text.secondaryA));
+    s.setProperty('--text-tertiary', rgba(a.text.color, a.text.tertiaryA));
+    s.setProperty('--text-muted', rgba(a.text.color, a.text.mutedA));
+    s.setProperty('--border-subtle', rgba(a.border.color, a.border.subtleA));
+    s.setProperty('--border-default', rgba(a.border.color, a.border.defaultA));
+    s.setProperty('--border-strong', rgba(a.border.color, a.border.strongA));
+  } else {
+    surfaces.forEach(p => s.removeProperty(p));
+  }
+}
 
 /* ─── STATE ─── */
 const STATE = {
@@ -703,18 +911,25 @@ function setTheme(theme) {
   localStorage.setItem('dc-theme', theme);
   $('icon-moon').style.display = theme === 'dark' ? 'block' : 'none';
   $('icon-sun').style.display = theme === 'light' ? 'block' : 'none';
+  applyAppearance();
   if (STATE.data.dc.length) setTimeout(() => renderCurrentPage(), 50);
 }
 function getChartTheme() {
+  const a = SETTINGS.appearance;
   const isDark = document.documentElement.getAttribute('data-theme') !== 'light';
+  if (isDark) return {
+    isDark,
+    textColor: rgba(a.text.color, 0.6),
+    axisColor: rgba(a.text.color, 0.1),
+    gridColor: rgba(a.text.color, Math.max(0.04, a.gridOpacity)),
+    tooltipBg: a.bg.card,
+    tooltipBorder: rgba(a.border.color, 0.18),
+    tooltipText: a.text.color
+  };
   return {
     isDark,
-    textColor: isDark ? 'rgba(255,255,255,0.6)' : 'rgba(10,10,15,0.65)',
-    axisColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.08)',
-    gridColor: isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.04)',
-    tooltipBg: isDark ? '#0d0d14' : '#ffffff',
-    tooltipBorder: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
-    tooltipText: isDark ? '#ffffff' : '#0a0a0f'
+    textColor: 'rgba(10,10,15,0.65)', axisColor: 'rgba(0,0,0,0.08)', gridColor: 'rgba(0,0,0,0.04)',
+    tooltipBg: '#ffffff', tooltipBorder: 'rgba(0,0,0,0.1)', tooltipText: '#0a0a0f'
   };
 }
 $('theme-toggle').addEventListener('click', () => {
@@ -940,15 +1155,15 @@ function renderMonthlyChart(deals) {
     xAxis: { type: 'category', data: labels, axisLine: { lineStyle: { color: t.axisColor } }, axisLabel: { color: t.textColor, fontSize: 10 }, axisTick: { show: false } },
     yAxis: [{ type: 'value', axisLine: { show: false }, axisTick: { show: false }, axisLabel: { color: t.textColor, fontSize: 10, formatter: (v) => fmtAED(v) }, splitLine: { lineStyle: { color: t.gridColor } } }],
     series: [
-      { name: 'Revenue', type: 'bar', data: keys.map(k => monthly[k].rev), itemStyle: { color: { type: 'linear', x: 0, y: 0, x2: 0, y2: 1, colorStops: [{ offset: 0, color: '#FE2B32' }, { offset: 1, color: 'rgba(254,43,50,0.4)' }] }, borderRadius: [4, 4, 0, 0] }, barWidth: '40%' },
-      { name: 'Gross Profit', type: 'line', data: keys.map(k => monthly[k].gp), smooth: true, lineStyle: { color: '#FFC533', width: 3 }, itemStyle: { color: '#FFC533', borderColor: '#FFC533', borderWidth: 2 }, symbol: 'circle', symbolSize: 7 }
+      { name: 'Revenue', type: 'bar', data: keys.map(k => monthly[k].rev), itemStyle: { color: { type: 'linear', x: 0, y: 0, x2: 0, y2: 1, colorStops: [{ offset: 0, color: PAL.red }, { offset: 1, color: rgba(PAL.red,0.4) }] }, borderRadius: [4, 4, 0, 0] }, barWidth: '40%' },
+      { name: 'Gross Profit', type: 'line', data: keys.map(k => monthly[k].gp), smooth: true, lineStyle: { color: PAL.amber, width: 3 }, itemStyle: { color: PAL.amber, borderColor: PAL.amber, borderWidth: 2 }, symbol: 'circle', symbolSize: 7 }
     ], animationDuration: 1000, animationEasing: 'cubicOut'
   });
 }
 function renderDivisionChart(deals) {
   const t = getChartTheme(); const byDiv = {};
   deals.forEach(d => { const dv = rawVal(d, 'division') || 'OTHER'; byDiv[dv] = (byDiv[dv] || 0) + dealGP(d); });
-  const colors = { RBR: '#FE2B32', STL: '#FF41A5', ALU: '#FFC533', NFS: '#4d9fff', SST: '#00d4aa' };
+  const colors = { RBR: PAL.red, STL: PAL.pink, ALU: PAL.amber, NFS: PAL.info, SST: PAL.green };
   const data = Object.entries(byDiv).filter(([k, v]) => v > 0).map(([k, v]) => ({ name: k, value: Math.round(v), itemStyle: { color: colors[k] || '#888' } }));
   initChart('chart-division', {
     backgroundColor: 'transparent',
@@ -966,12 +1181,12 @@ function renderTopCustomersChart(deals) {
     tooltip: { backgroundColor: t.tooltipBg, borderColor: t.tooltipBorder, borderWidth: 1, textStyle: { color: t.tooltipText }, formatter: (p) => `<div style="font-weight:600">${p[0].name}</div><div style="font-family:JetBrains Mono">${money(p[0].value)}</div>` },
     xAxis: { type: 'value', axisLine: { show: false }, axisTick: { show: false }, axisLabel: { color: t.textColor, fontSize: 10, formatter: (v) => fmtAED(v) }, splitLine: { lineStyle: { color: t.gridColor } } },
     yAxis: { type: 'category', data: sorted.map(([k]) => k.length > 25 ? k.slice(0, 25) + '...' : k).reverse(), axisLine: { show: false }, axisTick: { show: false }, axisLabel: { color: t.textColor, fontSize: 11 } },
-    series: [{ type: 'bar', data: sorted.map(([, v]) => Math.round(v)).reverse(), itemStyle: { color: { type: 'linear', x: 0, y: 0, x2: 1, y2: 0, colorStops: [{ offset: 0, color: 'rgba(254,43,50,0.4)' }, { offset: 1, color: '#FE2B32' }] }, borderRadius: [0, 4, 4, 0] }, barWidth: '60%', animationDuration: 1000 }]
+    series: [{ type: 'bar', data: sorted.map(([, v]) => Math.round(v)).reverse(), itemStyle: { color: { type: 'linear', x: 0, y: 0, x2: 1, y2: 0, colorStops: [{ offset: 0, color: rgba(PAL.red,0.4) }, { offset: 1, color: PAL.red }] }, borderRadius: [0, 4, 4, 0] }, barWidth: '60%', animationDuration: 1000 }]
   });
 }
 function renderStatusChart(byStatus) {
   const t = getChartTheme();
-  const colors = { 'COMPLETED': '#00d4aa', 'LIVE': '#FFC533', 'CANCELLED': 'rgba(255,255,255,0.2)', 'PARTIALLY COMPLETED': '#4d9fff', 'INCOMPLETE': '#FE2B32' };
+  const colors = { 'COMPLETED': PAL.green, 'LIVE': PAL.amber, 'CANCELLED': 'rgba(255,255,255,0.2)', 'PARTIALLY COMPLETED': PAL.info, 'INCOMPLETE': PAL.red };
   const data = Object.entries(byStatus).map(([k, v]) => ({ name: k, value: v, itemStyle: { color: colors[k] || '#888' } }));
   initChart('chart-status', {
     backgroundColor: 'transparent',
@@ -1094,13 +1309,13 @@ function renderCustomerGpChart(sorted) {
     tooltip: { backgroundColor: t.tooltipBg, borderColor: t.tooltipBorder, borderWidth: 1, textStyle: { color: t.tooltipText }, formatter: (p) => `<div style="font-weight:600">${p[0].name}</div><div style="font-family:JetBrains Mono">${money(p[0].value)}</div>` },
     xAxis: { type: 'value', axisLine: { show: false }, axisTick: { show: false }, axisLabel: { color: t.textColor, fontSize: 10, formatter: (v) => fmtAED(v) }, splitLine: { lineStyle: { color: t.gridColor } } },
     yAxis: { type: 'category', data: top.map(c => c.name.length > 25 ? c.name.slice(0, 25) + '...' : c.name).reverse(), axisLine: { show: false }, axisTick: { show: false }, axisLabel: { color: t.textColor, fontSize: 10 } },
-    series: [{ type: 'bar', data: top.map(c => Math.round(c.gp)).reverse(), itemStyle: { color: (p) => p.value < 0 ? '#FE2B32' : { type: 'linear', x: 0, y: 0, x2: 1, y2: 0, colorStops: [{ offset: 0, color: 'rgba(255,65,165,0.3)' }, { offset: 1, color: '#FF41A5' }] }, borderRadius: [0, 4, 4, 0] }, barWidth: '60%', animationDuration: 1000 }]
+    series: [{ type: 'bar', data: top.map(c => Math.round(c.gp)).reverse(), itemStyle: { color: (p) => p.value < 0 ? PAL.red : { type: 'linear', x: 0, y: 0, x2: 1, y2: 0, colorStops: [{ offset: 0, color: rgba(PAL.pink,0.3) }, { offset: 1, color: PAL.pink }] }, borderRadius: [0, 4, 4, 0] }, barWidth: '60%', animationDuration: 1000 }]
   });
 }
 function renderCustomerPieChart(sorted) {
   const t = getChartTheme(); const top = sorted.slice(0, 8);
   const others = sorted.slice(8).reduce((s, c) => s + c.rev, 0);
-  const colors = ['#FE2B32', '#FF41A5', '#FFC533', '#00d4aa', '#4d9fff', '#9b4dca', '#f97316', '#06b6d4'];
+  const colors = PAL.series;
   const data = top.map((c, i) => ({ name: c.name.length > 20 ? c.name.slice(0, 20) + '...' : c.name, value: Math.round(c.rev), itemStyle: { color: colors[i] } }));
   if (others > 0) data.push({ name: 'Others', value: Math.round(others), itemStyle: { color: 'rgba(255,255,255,0.15)' } });
   initChart('chart-customer-pie', {
@@ -1144,13 +1359,13 @@ function renderVendorSpendChart(sorted) {
     tooltip: { backgroundColor: t.tooltipBg, borderColor: t.tooltipBorder, borderWidth: 1, textStyle: { color: t.tooltipText }, formatter: (p) => `<div style="font-weight:600">${p[0].name}</div><div style="font-family:JetBrains Mono">${money(p[0].value)}</div>` },
     xAxis: { type: 'value', axisLine: { show: false }, axisTick: { show: false }, axisLabel: { color: t.textColor, fontSize: 10, formatter: (v) => fmtAED(v) }, splitLine: { lineStyle: { color: t.gridColor } } },
     yAxis: { type: 'category', data: top.map(c => c.name.length > 25 ? c.name.slice(0, 25) + '...' : c.name).reverse(), axisLine: { show: false }, axisTick: { show: false }, axisLabel: { color: t.textColor, fontSize: 10 } },
-    series: [{ type: 'bar', data: top.map(c => Math.round(c.cost)).reverse(), itemStyle: { color: { type: 'linear', x: 0, y: 0, x2: 1, y2: 0, colorStops: [{ offset: 0, color: 'rgba(255,197,51,0.3)' }, { offset: 1, color: '#FFC533' }] }, borderRadius: [0, 4, 4, 0] }, barWidth: '60%', animationDuration: 1000 }]
+    series: [{ type: 'bar', data: top.map(c => Math.round(c.cost)).reverse(), itemStyle: { color: { type: 'linear', x: 0, y: 0, x2: 1, y2: 0, colorStops: [{ offset: 0, color: rgba(PAL.amber,0.3) }, { offset: 1, color: PAL.amber }] }, borderRadius: [0, 4, 4, 0] }, barWidth: '60%', animationDuration: 1000 }]
   });
 }
 function renderVendorFxChart(deals) {
   const t = getChartTheme(); const byCcy = {};
   deals.forEach(d => { const c = rawVal(d, 'purchaseCurrency') || 'AED'; byCcy[c] = (byCcy[c] || 0) + num(d, 'cost'); });
-  const colors = { USD: '#00d4aa', EUR: '#FF41A5', GBP: '#FFC533', AED: '#FE2B32', INR: '#4d9fff' };
+  const colors = { USD: PAL.green, EUR: PAL.pink, GBP: PAL.amber, AED: PAL.red, INR: PAL.info };
   const data = Object.entries(byCcy).map(([k, v]) => ({ name: k, value: Math.round(v), itemStyle: { color: colors[k] || '#888' } }));
   initChart('chart-vendor-fx', {
     backgroundColor: 'transparent',
@@ -1217,7 +1432,7 @@ function renderBsplCustomerPie(filtered) {
   filtered.forEach(r => { const c = rawVal(r, 'customer') || 'Unknown'; byCust[c] = (byCust[c] || 0) + num(r, 'revenue'); });
   const sorted = Object.entries(byCust).sort((a, b) => b[1] - a[1]); const top = sorted.slice(0, 8);
   const othersRev = sorted.slice(8).reduce((s, [, v]) => s + v, 0);
-  const colors = ['#FE2B32', '#FF41A5', '#FFC533', '#00d4aa', '#4d9fff', '#9b4dca', '#f97316', '#06b6d4'];
+  const colors = PAL.series;
   const data = top.map(([name, v], i) => ({ name: name.length > 20 ? name.slice(0, 20) + '…' : name, value: Math.round(v), itemStyle: { color: colors[i] } }));
   if (othersRev > 0) data.push({ name: 'Others', value: Math.round(othersRev), itemStyle: { color: 'rgba(255,255,255,0.15)' } });
   initChart('chart-bspl-customer-pie', {
@@ -1231,7 +1446,7 @@ function renderBsplVendorPie(filtered) {
   filtered.forEach(r => { const v = rawVal(r, 'vendor') || 'Unknown'; byVnd[v] = (byVnd[v] || 0) + num(r, 'cost'); });
   const sorted = Object.entries(byVnd).sort((a, b) => b[1] - a[1]); const top = sorted.slice(0, 8);
   const othersVal = sorted.slice(8).reduce((s, [, v]) => s + v, 0);
-  const colors = ['#FFC533', '#FF41A5', '#FE2B32', '#00d4aa', '#4d9fff', '#9b4dca', '#f97316', '#06b6d4'];
+  const colors = PAL.series;
   const data = top.map(([name, v], i) => ({ name: name.length > 20 ? name.slice(0, 20) + '…' : name, value: Math.round(v), itemStyle: { color: colors[i] } }));
   if (othersVal > 0) data.push({ name: 'Others', value: Math.round(othersVal), itemStyle: { color: 'rgba(255,255,255,0.15)' } });
   initChart('chart-bspl-vendor-pie', {
@@ -1249,7 +1464,7 @@ function renderBsplDivisionPnl() {
     $('bspl-customer-div-breakdown').innerHTML = ''; $('bspl-vendor-div-breakdown').innerHTML = '';
     return;
   }
-  const divColors = { RBR: '#FE2B32', STL: '#FF41A5', ALU: '#FFC533', NFS: '#4d9fff', SST: '#00d4aa' };
+  const divColors = { RBR: PAL.red, STL: PAL.pink, ALU: PAL.amber, NFS: PAL.info, SST: PAL.green };
   const byDiv = {};
   divisions.forEach(d => { byDiv[d] = { rev: 0, cost: 0, freight: 0, bank: 0, other: 0, netGp: 0, deals: 0 }; });
   base.forEach(r => {
@@ -1328,11 +1543,11 @@ function renderInvestor() {
     tooltip: { trigger: 'axis', backgroundColor: t.tooltipBg, borderColor: t.tooltipBorder, borderWidth: 1, textStyle: { color: t.tooltipText }, formatter: (p) => `<div style="font-weight:600">${p[0].axisValue}</div><div style="font-family:JetBrains Mono">${money(p[0].value)}</div>` },
     xAxis: { type: 'category', data: labels, axisLine: { lineStyle: { color: t.axisColor } }, axisLabel: { color: t.textColor, fontSize: 10 }, axisTick: { show: false } },
     yAxis: { type: 'value', axisLine: { show: false }, axisTick: { show: false }, axisLabel: { color: t.textColor, fontSize: 10, formatter: (v) => fmtAED(v) }, splitLine: { lineStyle: { color: t.gridColor } } },
-    series: [{ type: 'line', smooth: true, data: keys.map(k => monthly[k]), lineStyle: { color: '#FE2B32', width: 3 }, areaStyle: { color: { type: 'linear', x: 0, y: 0, x2: 0, y2: 1, colorStops: [{ offset: 0, color: 'rgba(254,43,50,0.35)' }, { offset: 1, color: 'rgba(254,43,50,0)' }] } }, itemStyle: { color: '#FE2B32' }, symbol: 'circle', symbolSize: 8, animationDuration: 1200 }]
+    series: [{ type: 'line', smooth: true, data: keys.map(k => monthly[k]), lineStyle: { color: PAL.red, width: 3 }, areaStyle: { color: { type: 'linear', x: 0, y: 0, x2: 0, y2: 1, colorStops: [{ offset: 0, color: rgba(PAL.red,0.35) }, { offset: 1, color: rgba(PAL.red,0) }] } }, itemStyle: { color: PAL.red }, symbol: 'circle', symbolSize: 8, animationDuration: 1200 }]
   });
   const byDiv = {};
   completed.forEach(d => { const dv = rawVal(d, 'division') || 'OTHER'; byDiv[dv] = (byDiv[dv] || 0) + num(d, 'revenue'); });
-  const colors = { RBR: '#FE2B32', STL: '#FF41A5', ALU: '#FFC533', NFS: '#4d9fff', SST: '#00d4aa' };
+  const colors = { RBR: PAL.red, STL: PAL.pink, ALU: PAL.amber, NFS: PAL.info, SST: PAL.green };
   const data = Object.entries(byDiv).filter(([k, v]) => v > 0).map(([k, v]) => ({ name: k, value: Math.round(v), itemStyle: { color: colors[k] || '#888' } }));
   initChart('chart-inv-mix', {
     backgroundColor: 'transparent',
@@ -1354,9 +1569,9 @@ function renderFX() {
     xAxis: { type: 'category', data: dates, axisLine: { lineStyle: { color: t.axisColor } }, axisLabel: { color: t.textColor, fontSize: 9 }, axisTick: { show: false } },
     yAxis: { type: 'value', scale: true, axisLine: { show: false }, axisTick: { show: false }, axisLabel: { color: t.textColor, fontSize: 10 }, splitLine: { lineStyle: { color: t.gridColor } } },
     series: [
-      { name: 'GBP', type: 'line', data: fx.map(r => toNum(r['GBP'])), smooth: true, lineStyle: { color: '#FFC533', width: 2 }, itemStyle: { color: '#FFC533' }, symbol: 'none' },
-      { name: 'EUR', type: 'line', data: fx.map(r => toNum(r['EUR'])), smooth: true, lineStyle: { color: '#FF41A5', width: 2 }, itemStyle: { color: '#FF41A5' }, symbol: 'none' },
-      { name: 'USD', type: 'line', data: fx.map(r => toNum(r['USD'])), smooth: true, lineStyle: { color: '#00d4aa', width: 2 }, itemStyle: { color: '#00d4aa' }, symbol: 'none' }
+      { name: 'GBP', type: 'line', data: fx.map(r => toNum(r['GBP'])), smooth: true, lineStyle: { color: PAL.amber, width: 2 }, itemStyle: { color: PAL.amber }, symbol: 'none' },
+      { name: 'EUR', type: 'line', data: fx.map(r => toNum(r['EUR'])), smooth: true, lineStyle: { color: PAL.pink, width: 2 }, itemStyle: { color: PAL.pink }, symbol: 'none' },
+      { name: 'USD', type: 'line', data: fx.map(r => toNum(r['USD'])), smooth: true, lineStyle: { color: PAL.green, width: 2 }, itemStyle: { color: PAL.green }, symbol: 'none' }
     ], animationDuration: 1200
   });
 }
@@ -1370,6 +1585,11 @@ function setupAdmin() {
   $('adm-reset').addEventListener('click', resetAdmin);
   $('adm-export').addEventListener('click', exportSettings);
   $('adm-import').addEventListener('change', importSettings);
+  $('adm-presets').addEventListener('click', e => { const b = e.target.closest('[data-preset]'); if (b) applyPreset(b.dataset.preset); });
+  $('adm-content').addEventListener('input', e => {
+    const id = e.target.id || '';
+    if (APP_INPUT_PREFIXES.some(p => id === p || id.startsWith(p))) liveAppearance();
+  });
 }
 function unlockAdmin() {
   if ($('adm-lock-input').value === SETTINGS.adminPassword) {
@@ -1401,7 +1621,58 @@ function renderAdmin() {
   $('adm-margin-lo').value = SETTINGS.marginThresholds.caution;
   $('adm-refresh').value = SETTINGS.refreshSeconds;
   $('adm-adminpass').value = SETTINGS.adminPassword;
+  renderAppearancePanel();
 }
+const ACCENT_KEYS = [['red', 'Red / primary'], ['pink', 'Pink'], ['amber', 'Amber'], ['green', 'Green / success'], ['info', 'Info / blue'], ['c6', 'Extra 6'], ['c7', 'Extra 7'], ['c8', 'Extra 8']];
+const SURF_KEYS = [['primary', 'Page background'], ['secondary', 'Nav / bars'], ['tertiary', 'Tertiary'], ['card', 'Cards'], ['elevated', 'Elevated / inputs']];
+const APP_RANGE_LABELS = { 'adm-text-secA': 'adm-text-secA-v', 'adm-text-terA': 'adm-text-terA-v', 'adm-text-mutA': 'adm-text-mutA-v', 'adm-border-subA': 'adm-border-subA-v', 'adm-border-defA': 'adm-border-defA-v', 'adm-border-strA': 'adm-border-strA-v', 'adm-basefont': 'adm-basefont-v', 'adm-rad-sm': 'adm-rad-sm-v', 'adm-rad-md': 'adm-rad-md-v', 'adm-rad-lg': 'adm-rad-lg-v', 'adm-rad-xl': 'adm-rad-xl-v', 'adm-glow': 'adm-glow-v', 'adm-grid': 'adm-grid-v', 'adm-anim': 'adm-anim-v' };
+function setRange(id, val) { const el = $(id); if (el) el.value = val; }
+function updateRangeLabels() { Object.entries(APP_RANGE_LABELS).forEach(([inp, lab]) => { const i = $(inp), l = $(lab); if (i && l) l.textContent = i.value; }); }
+function renderAppearancePanel() {
+  const a = SETTINGS.appearance;
+  $('adm-presets').innerHTML = Object.keys(PRESETS).map(name => {
+    const p = PRESETS[name];
+    const sw = ['red', 'green', 'amber', 'info'].map(k => `<span class="sw" style="background:${p.accent[k]}"></span>`).join('');
+    return `<button class="adm-preset" type="button" data-preset="${escapeHtml(name)}"><span class="swatches">${sw}</span>${escapeHtml(name)}</button>`;
+  }).join('');
+  $('adm-accents').innerHTML = ACCENT_KEYS.map(([k, label]) => `<div class="adm-field"><label>${label}</label><input type="color" id="adm-acc-${k}" value="${a.accent[k]}"/></div>`).join('');
+  $('adm-series').innerHTML = a.chartSeries.map((c, i) => `<div class="adm-field"><label>Slot ${i + 1}</label><input type="color" id="adm-ser-${i}" value="${c}"/></div>`).join('');
+  $('adm-surfaces').innerHTML = SURF_KEYS.map(([k, label]) => `<div class="adm-field"><label>${label}</label><input type="color" id="adm-bg-${k}" value="${a.bg[k]}"/></div>`).join('');
+  $('adm-text-color').value = a.text.color;
+  setRange('adm-text-secA', a.text.secondaryA); setRange('adm-text-terA', a.text.tertiaryA); setRange('adm-text-mutA', a.text.mutedA);
+  $('adm-border-color').value = a.border.color;
+  setRange('adm-border-subA', a.border.subtleA); setRange('adm-border-defA', a.border.defaultA); setRange('adm-border-strA', a.border.strongA);
+  $('adm-font-display').value = a.fonts.display; $('adm-font-body').value = a.fonts.body; $('adm-font-mono').value = a.fonts.mono;
+  setRange('adm-basefont', a.baseFontPx);
+  setRange('adm-rad-sm', a.radius.sm); setRange('adm-rad-md', a.radius.md); setRange('adm-rad-lg', a.radius.lg); setRange('adm-rad-xl', a.radius.xl);
+  setRange('adm-glow', a.glow); setRange('adm-grid', a.gridOpacity); setRange('adm-anim', a.animSpeed);
+  $('adm-scanlines').checked = !!a.scanlines;
+  updateRangeLabels();
+}
+function commitAppearance() {
+  const a = SETTINGS.appearance;
+  ACCENT_KEYS.forEach(([k]) => { const el = $('adm-acc-' + k); if (el) a.accent[k] = el.value; });
+  a.chartSeries = a.chartSeries.map((c, i) => { const el = $('adm-ser-' + i); return el ? el.value : c; });
+  SURF_KEYS.forEach(([k]) => { const el = $('adm-bg-' + k); if (el) a.bg[k] = el.value; });
+  a.text.color = $('adm-text-color').value;
+  a.text.secondaryA = parseFloat($('adm-text-secA').value); a.text.tertiaryA = parseFloat($('adm-text-terA').value); a.text.mutedA = parseFloat($('adm-text-mutA').value);
+  a.border.color = $('adm-border-color').value;
+  a.border.subtleA = parseFloat($('adm-border-subA').value); a.border.defaultA = parseFloat($('adm-border-defA').value); a.border.strongA = parseFloat($('adm-border-strA').value);
+  a.fonts.display = $('adm-font-display').value.trim() || 'Syne'; a.fonts.body = $('adm-font-body').value.trim() || 'DM Sans'; a.fonts.mono = $('adm-font-mono').value.trim() || 'JetBrains Mono';
+  a.baseFontPx = parseInt($('adm-basefont').value) || 14;
+  a.radius.sm = parseInt($('adm-rad-sm').value); a.radius.md = parseInt($('adm-rad-md').value); a.radius.lg = parseInt($('adm-rad-lg').value); a.radius.xl = parseInt($('adm-rad-xl').value);
+  a.glow = parseFloat($('adm-glow').value); a.gridOpacity = parseFloat($('adm-grid').value); a.animSpeed = parseFloat($('adm-anim').value);
+  a.scanlines = $('adm-scanlines').checked;
+}
+const liveAppearance = debounce(() => { commitAppearance(); updateRangeLabels(); applyAppearance(); renderCurrentPage(); }, 60);
+function applyPreset(name) {
+  const p = PRESETS[name]; if (!p) return;
+  SETTINGS.appearance = clone(p);
+  renderAppearancePanel(); applyAppearance(); renderCurrentPage();
+  const st = $('adm-status'); st.textContent = '✓ ' + name + ' applied — Save to keep'; st.style.opacity = '1';
+  setTimeout(() => st.style.opacity = '0', 2800);
+}
+const APP_INPUT_PREFIXES = ['adm-acc-', 'adm-ser-', 'adm-bg-', 'adm-text-', 'adm-border-', 'adm-font-', 'adm-basefont', 'adm-rad-', 'adm-glow', 'adm-grid', 'adm-anim', 'adm-scanlines'];
 function saveAdmin() {
   COLUMN_FIELDS.forEach(([key]) => { const el = $('adm-col-' + key); if (el) SETTINGS.columns[key] = el.value; });
   SETTINGS.numberSystem = $('adm-numsys').value;
@@ -1418,15 +1689,16 @@ function saveAdmin() {
   SETTINGS.marginThresholds.caution = parseFloat($('adm-margin-lo').value) || 2;
   SETTINGS.refreshSeconds = Math.max(10, parseInt($('adm-refresh').value) || 60);
   SETTINGS.adminPassword = $('adm-adminpass').value || SETTINGS.adminPassword;
+  commitAppearance();
   saveSettings();
   $('status-text').textContent = 'Live · ' + SETTINGS.refreshSeconds + 's';
-  startAutoRefresh(); populateFilterOptions(); renderAllPages();
+  applyAppearance(); startAutoRefresh(); populateFilterOptions(); renderAllPages();
   const st = $('adm-status'); st.textContent = '✓ Saved & applied'; st.style.opacity = '1';
   setTimeout(() => st.style.opacity = '0', 2500);
 }
 function resetAdmin() {
   if (!confirm('Reset ALL settings back to defaults? This cannot be undone.')) return;
-  SETTINGS = clone(DEFAULT_SETTINGS); saveSettings(); renderAdmin(); populateFilterOptions(); renderAllPages();
+  SETTINGS = clone(DEFAULT_SETTINGS); saveSettings(); applyAppearance(); renderAdmin(); populateFilterOptions(); renderAllPages();
   const st = $('adm-status'); st.textContent = '✓ Reset to defaults'; st.style.opacity = '1';
   setTimeout(() => st.style.opacity = '0', 2500);
 }
@@ -1441,7 +1713,7 @@ function importSettings(e) {
   reader.onload = () => {
     try {
       SETTINGS = deepMerge(clone(DEFAULT_SETTINGS), JSON.parse(reader.result));
-      saveSettings(); renderAdmin(); populateFilterOptions(); renderAllPages();
+      saveSettings(); applyAppearance(); renderAdmin(); populateFilterOptions(); renderAllPages();
       const st = $('adm-status'); st.textContent = '✓ Settings imported'; st.style.opacity = '1';
       setTimeout(() => st.style.opacity = '0', 2500);
     } catch (err) { alert('Invalid settings file.'); }
