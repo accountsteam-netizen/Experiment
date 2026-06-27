@@ -212,8 +212,8 @@ body.scanlines-on .scan-overlay::after {
 .data-table .num.pos { color: var(--status-success); }
 .data-table .num.neg { color: var(--brand-red); }
 .data-table .num.warn { color: var(--brand-amber); }
-.table-wrap { background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); overflow: clip; max-height: 600px; }
-.table-scroll { overflow-x: auto; overflow-y: auto; max-height: 600px; }
+.table-wrap { background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); overflow: visible; max-height: 600px; }
+.table-scroll { overflow-x: auto; overflow-y: auto; max-height: 600px; border-radius: var(--radius-lg); }
 .badge { display: inline-block; font-size: 10px; font-weight: 600; padding: 3px 8px; border-radius: 4px; letter-spacing: 0.04em; font-family: var(--font-mono); }
 .badge.completed { background: rgba(0,212,170,0.12); color: var(--status-success); }
 .badge.live { background: rgba(255,197,51,0.12); color: var(--brand-amber); }
@@ -1414,7 +1414,7 @@ function getFilteredDeals() {
 }
 
 /* ─── TABLE SORT ENGINE ─── */
-const TABLE_SORT = { deals: { col: 'date', dir: 'desc' }, customers: { col: 'gp', dir: 'desc' }, vendors: { col: 'cost', dir: 'desc' }, bspl: { col: 'metric', dir: 'asc' } };
+const TABLE_SORT = { deals: { col: 'date', dir: 'desc' }, customers: { col: 'gp', dir: 'desc' }, vendors: { col: 'cost', dir: 'desc' } };
 function setupTableSort() {
   document.addEventListener('click', e => {
     if (!SETTINGS.tableSortEnabled) return;
@@ -1427,7 +1427,6 @@ function setupTableSort() {
     if (tbl === 'deals') renderDeals();
     if (tbl === 'customers') renderCustomers();
     if (tbl === 'vendors') renderVendors();
-    if (tbl === 'bspl') renderBsplDivisionPnl();
   });
 }
 function updateSortHeaders(tbl) {
@@ -1438,7 +1437,7 @@ function updateSortHeaders(tbl) {
   });
 }
 function applySortHeaders() {
-  ['deals', 'customers', 'vendors', 'bspl'].forEach(tbl => {
+  ['deals', 'customers', 'vendors'].forEach(tbl => {
     const enabled = SETTINGS.tableSortEnabled;
     document.querySelectorAll(`th[data-table="${tbl}"]`).forEach(th => {
       th.classList.toggle('sortable', enabled);
@@ -1757,9 +1756,8 @@ function renderBsplDivisionPnl() {
     byDiv[d].rev += num(r, 'revenue'); byDiv[d].cost += num(r, 'cost'); byDiv[d].freight += freightAED(r);
     byDiv[d].bank += num(r, 'bankCharges'); byDiv[d].other += num(r, 'otherCharges'); byDiv[d].netGp += dealGP(r); byDiv[d].deals += 1;
   });
-  const divHeaders = divisions.map(d => `<th class="sortable" data-col="${escapeHtml(d)}" data-table="bspl" style="color:${divColors[d] || 'var(--text-primary)'}">${escapeHtml(d)}</th>`).join('');
-  $('bspl-div-pnl-head').innerHTML = `<tr><th class="sortable" data-col="metric" data-table="bspl" style="text-align:left">Metric</th>${divHeaders}<th>Total</th></tr>`;
-  setTimeout(() => applySortHeaders(), 0);
+  const divHeaders = divisions.map(d => `<th style="color:${divColors[d] || 'var(--text-primary)'}">${escapeHtml(d)}</th>`).join('');
+  $('bspl-div-pnl-head').innerHTML = `<tr><th style="text-align:left">Metric</th>${divHeaders}<th>Total</th></tr>`;
   const rows = [
     { label: 'Revenue', key: 'rev' }, { label: 'Purchase Cost', key: 'cost' }, { label: 'Gross Profit', isGross: true },
     { label: 'Freight', key: 'freight' }, { label: 'Bank Charges', key: 'bank' }, { label: 'Other Charges', key: 'other' },
@@ -1802,47 +1800,77 @@ function renderEntityDivisionBreakdown(base, divisions, divColors, entityKey, en
     if (!e || !d || !byEntity[e] || !byEntity[e][d]) return;
     byEntity[e][d].rev += num(r, 'revenue'); byEntity[e][d].gp += dealGP(r); byEntity[e][d].deals += 1;
   });
-  // Build row objects for sorting
-  const rows = entities.map(e => ({ name: e, divData: byEntity[e], totalGp: divisions.reduce((s,d)=>s+byEntity[e][d].gp,0), totalRev: divisions.reduce((s,d)=>s+byEntity[e][d].rev,0) }));
-  // Apply sort
+  const rows = entities.map(e => ({
+    name: e, divData: byEntity[e],
+    totalGp:  divisions.reduce((s,d)=>s+byEntity[e][d].gp,0),
+    totalRev: divisions.reduce((s,d)=>s+byEntity[e][d].rev,0)
+  }));
   const s = ENTITY_SORT[containerId] || { col: 'name', dir: 'asc' };
   rows.sort((a, b) => {
     let av, bv;
-    if (s.col === 'name') { av = a.name; bv = b.name; }
-    else if (s.col === 'totalGp') { av = a.totalGp; bv = b.totalGp; }
-    else { av = a.divData[s.col]?.gp ?? 0; bv = b.divData[s.col]?.gp ?? 0; }
+    if (s.col === 'name')           { av = a.name;    bv = b.name; }
+    else if (s.col === 'totalGp')   { av = a.totalGp; bv = b.totalGp; }
+    else if (s.col === 'totalRev')  { av = a.totalRev; bv = b.totalRev; }
+    else if (s.col.endsWith(':rev')){ const d = s.col.slice(0,-4); av = a.divData[d]?.rev??0; bv = b.divData[d]?.rev??0; }
+    else                             { av = a.divData[s.col]?.gp??0; bv = b.divData[s.col]?.gp??0; }
     const mul = s.dir === 'asc' ? 1 : -1;
     return typeof av === 'string' ? mul * av.localeCompare(bv) : mul * (av - bv);
   });
-  const sortArrow = (col) => {
-    if (!SETTINGS.tableSortEnabled) return '';
-    if (s.col !== col) return '<span style="opacity:0.3;font-size:9px;margin-left:3px">⇅</span>';
-    return `<span style="color:var(--brand-red);font-size:9px;margin-left:3px">${s.dir==='asc'?'↑':'↓'}</span>`;
+
+  const canSort = SETTINGS.tableSortEnabled;
+  const arrow = col => {
+    if (!canSort) return '';
+    if (s.col !== col) return '<span style="opacity:0.25;font-size:9px;margin-left:2px">⇅</span>';
+    return `<span style="color:var(--brand-red);font-size:9px;margin-left:2px">${s.dir==='asc'?'↑':'↓'}</span>`;
   };
-  const thStyle = SETTINGS.tableSortEnabled ? 'cursor:pointer;user-select:none;' : '';
-  const divHeaders = divisions.map(d =>
-    `<th colspan="2" style="color:${divColors[d]||'var(--text-primary)'};${thStyle}" data-sort-container="${containerId}" data-sort-col="${d}">${escapeHtml(d)}${sortArrow(d)}</th>`
+  const sortTh = (col, label, extra='') => canSort
+    ? `<th style="cursor:pointer;user-select:none;${extra}" data-sort-container="${containerId}" data-sort-col="${col}">${label}${arrow(col)}</th>`
+    : `<th style="${extra}">${label}</th>`;
+
+  // Top header row: entity name (rowspan 2, sortable) + division names (colspan 2, no sort arrows) + Total (colspan 2)
+  const nameRowspan = canSort
+    ? `<th rowspan="2" style="text-align:left;cursor:pointer;user-select:none;vertical-align:bottom" data-sort-container="${containerId}" data-sort-col="name">${entityLabel}${arrow('name')}</th>`
+    : `<th rowspan="2" style="text-align:left;vertical-align:bottom">${entityLabel}</th>`;
+  const divTopHeaders = divisions.map(d =>
+    `<th colspan="2" style="color:${divColors[d]||'var(--text-primary)'};text-align:center;border-bottom:1px solid var(--border-subtle)">${escapeHtml(d)}</th>`
   ).join('');
-  const divSubHeaders = divisions.map(() => `<th>Revenue</th><th>GP</th>`).join('');
-  const totalGpTh = `<th style="${thStyle}" data-sort-container="${containerId}" data-sort-col="totalGp">Total GP${sortArrow('totalGp')}</th>`;
-  const nameTh = `<th style="text-align:left;${thStyle}" data-sort-container="${containerId}" data-sort-col="name">${entityLabel}${sortArrow('name')}</th>`;
+  const totalTopTh = `<th colspan="2" style="text-align:center;border-bottom:1px solid var(--border-subtle)">Total</th>`;
+
+  // Sub-header row: Revenue | GP per division + Total Rev | Total GP  ← SORT ARROWS HERE
+  const divSubThs = divisions.map(d =>
+    `${sortTh(d+':rev','Revenue')}${sortTh(d,'GP')}`
+  ).join('');
+  const totalSubThs = `${sortTh('totalRev','Revenue')}${sortTh('totalGp','GP')}`;
+
   const rowHtml = rows.map(r => {
     const cells = divisions.map(d => {
       const v = r.divData[d];
       return `<td>${v.deals>0?fmtAED(v.rev):'—'}</td><td class="${v.gp>=0?'pos':'neg'}">${v.deals>0?fmtAED(v.gp):'—'}</td>`;
     }).join('');
-    return `<tr><td>${escapeHtml(r.name)}</td>${cells}<td class="${r.totalGp>=0?'pos':'neg'}" style="font-weight:600">${fmtAED(r.totalGp)}</td></tr>`;
+    return `<tr>
+      <td style="font-weight:500">${escapeHtml(r.name)}</td>${cells}
+      <td>${fmtAED(r.totalRev)}</td>
+      <td class="${r.totalGp>=0?'pos':'neg'}" style="font-weight:600">${fmtAED(r.totalGp)}</td>
+    </tr>`;
   }).join('');
-  $(containerId).innerHTML = `<div style="overflow-x:auto;max-height:400px;overflow-y:auto"><table class="div-pnl-table"><thead><tr>${nameTh}${divHeaders}${totalGpTh}</tr><tr style="background:var(--bg-elevated)"><th></th>${divSubHeaders}<th>Total</th></tr></thead><tbody>${rowHtml}</tbody></table></div>`;
-  // Wire sort click on headers
-  if (SETTINGS.tableSortEnabled) {
-    $(containerId).querySelectorAll('[data-sort-container]').forEach(th => {
-      th.addEventListener('click', () => {
-        const cid = th.dataset.sortContainer, col = th.dataset.sortCol;
+
+  $(containerId).innerHTML = `<div style="overflow-x:auto;max-height:420px;overflow-y:auto">
+    <table class="div-pnl-table">
+      <thead>
+        <tr>${nameRowspan}${divTopHeaders}${totalTopTh}</tr>
+        <tr style="background:var(--bg-elevated)">${divSubThs}${totalSubThs}</tr>
+      </thead>
+      <tbody>${rowHtml}</tbody>
+    </table></div>`;
+
+  if (canSort) {
+    $(containerId).querySelectorAll('[data-sort-container]').forEach(el => {
+      el.addEventListener('click', () => {
+        const cid = el.dataset.sortContainer, col = el.dataset.sortCol;
         if (!ENTITY_SORT[cid]) ENTITY_SORT[cid] = { col, dir: 'desc' };
-        else if (ENTITY_SORT[cid].col === col) ENTITY_SORT[cid].dir = ENTITY_SORT[cid].dir === 'asc' ? 'desc' : 'asc';
-        else { ENTITY_SORT[cid].col = col; ENTITY_SORT[cid].dir = col === 'name' ? 'asc' : 'desc'; }
-        renderBsplDivisionPnl();
+        else if (ENTITY_SORT[cid].col === col) ENTITY_SORT[cid].dir = ENTITY_SORT[cid].dir==='asc'?'desc':'asc';
+        else { ENTITY_SORT[cid].col = col; ENTITY_SORT[cid].dir = col==='name'?'asc':'desc'; }
+        renderBSPL();
       });
     });
   }
