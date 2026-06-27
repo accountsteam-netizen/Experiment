@@ -168,9 +168,8 @@ body.scanlines-on .scan-overlay::after {
 .icon-btn.alert { color: var(--brand-amber); }
 .icon-btn svg { width: 16px; height: 16px; }
 .app-main { padding: 28px; max-width: 1600px; margin: 0 auto; position: relative; z-index: 1; }
-.page { display: none; animation: fadeIn 0.4s var(--transition-smooth); }
+.page { display: none; }
 .page.active { display: block; }
-@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
 .page-header { margin-bottom: 24px; }
 .page-eyebrow { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--text-tertiary); margin-bottom: 4px; }
 .page-title { font-family: var(--font-display); font-size: 28px; font-weight: 700; letter-spacing: -0.02em; color: var(--text-primary); }
@@ -1034,7 +1033,7 @@ function setTheme(theme) {
   $('icon-moon').style.display = theme === 'dark' ? 'block' : 'none';
   $('icon-sun').style.display = theme === 'light' ? 'block' : 'none';
   applyAppearance();
-  if (STATE.data.dc.length) setTimeout(() => renderCurrentPage(), 50);
+  if (STATE.data.dc.length) renderCurrentPage();
 }
 function getChartTheme() {
   const a = SETTINGS.appearance;
@@ -1208,10 +1207,12 @@ function setupNavigation() {
 }
 function switchPage(page) {
   STATE.currentPage = page;
+  DIRTY_PAGES.delete(page);
+  // Render first, then show — eliminates the blank-then-paint blink
+  renderCurrentPage();
   $$('.page').forEach(p => p.classList.remove('active'));
   $('page-' + page)?.classList.add('active');
   $$('.nav-tab').forEach(t => t.classList.toggle('active', t.dataset.page === page));
-  setTimeout(() => renderCurrentPage(), 50);
 }
 function renderCurrentPage() {
   switch (STATE.currentPage) {
@@ -1225,9 +1226,14 @@ function renderCurrentPage() {
     case 'admin': renderAdmin(); break;
   }
 }
+const DIRTY_PAGES = new Set();
 function renderAllPages() {
   populateFilterOptions();
-  renderOverview(); renderDeals(); renderCustomers(); renderVendors(); renderBSPL(); renderInvestor(); renderFX(); renderAdmin();
+  // Mark all pages dirty — they will render when navigated to
+  ['overview','deals','customers','vendors','bspl','investor','fx'].forEach(p => DIRTY_PAGES.add(p));
+  // Always render the current visible page immediately
+  renderCurrentPage();
+  DIRTY_PAGES.delete(STATE.currentPage);
 }
 function startAutoRefresh() {
   if (STATE.refreshTimer) clearInterval(STATE.refreshTimer);
@@ -2232,9 +2238,13 @@ function importSettings(e) {
 /* ─── CHART HELPER + GLOBAL LISTENERS ─── */
 function initChart(id, options) {
   const el = $(id); if (!el) return;
-  if (STATE.charts[id]) STATE.charts[id].dispose();
-  const chart = echarts.init(el, null, { renderer: 'canvas' });
-  chart.setOption(options); STATE.charts[id] = chart;
+  let chart = STATE.charts[id];
+  if (!chart || chart.isDisposed()) {
+    chart = echarts.init(el, null, { renderer: 'canvas' });
+    STATE.charts[id] = chart;
+  }
+  // Update data smoothly — no dispose, no flash
+  chart.setOption(options, { notMerge: true, lazyUpdate: false });
 }
 window.addEventListener('resize', debounce(() => { Object.values(STATE.charts).forEach(c => c && c.resize()); }, 150));
 window.addEventListener('hashchange', () => {
