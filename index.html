@@ -8,8 +8,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@500;600;700;800&family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://accounts.google.com; connect-src https://sheets.googleapis.com https://oauth2.googleapis.com https://accounts.google.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:;"/>
-<script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js" integrity="sha384-SDXH2u4vAFBDmRtM0nSBnrFUHv2LfixRZm/bQzGBK8k3IHBfKvJlJz4bpkfEdL4" crossorigin="anonymous"></script>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://accounts.google.com; connect-src https://sheets.googleapis.com https://oauth2.googleapis.com https://accounts.google.com https://www.googleapis.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:;"/>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js" crossorigin="anonymous"></script>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 
 <style>
@@ -623,6 +623,8 @@ th.sortable:hover::after { opacity: 0.7; }
             <div class="adm-field"><label>New admin password</label><input type="password" id="adm-new-admin-pw" placeholder="Leave blank to keep current"/><span class="hint">Gate for this terminal</span></div>
             <div class="adm-field"><label>Max login attempts before lockout</label><input type="number" id="adm-max-attempts" min="2" max="20" step="1"/></div>
             <div class="adm-field"><label>Lockout duration (minutes)</label><input type="number" id="adm-lockout-mins" min="1" max="60" step="1"/></div>
+            <div class="adm-field" style="grid-column:1/-1"><label>Approved email addresses (one per line — leave empty to allow any Google account)</label><textarea id="adm-email-allowlist" rows="4" style="width:100%;background:var(--bg-elevated);border:1px solid var(--border-default);border-radius:var(--radius-sm);padding:8px 10px;font-size:12px;color:var(--text-primary);font-family:var(--font-mono);resize:vertical;outline:none" placeholder="ceo@company.com&#10;cfo@company.com"></textarea><span class="hint">Email check happens after Google sign-in. Anyone NOT on this list is rejected, even with a valid Google account.</span></div>
+            <div class="adm-field" style="grid-column:1/-1"><label>Approved domains (one per line — anyone @domain passes, regardless of email list)</label><textarea id="adm-domain-allowlist" rows="2" style="width:100%;background:var(--bg-elevated);border:1px solid var(--border-default);border-radius:var(--radius-sm);padding:8px 10px;font-size:12px;color:var(--text-primary);font-family:var(--font-mono);resize:vertical;outline:none" placeholder="doubleclicktrading.com"></textarea><span class="hint">Use this OR the email list, not both together — domain is broader.</span></div>
           </div>
           <div style="margin-top:14px;padding:12px 14px;background:rgba(255,197,51,0.06);border:1px solid rgba(255,197,51,0.15);border-radius:var(--radius-md);font-size:11px;color:var(--text-secondary);line-height:1.6">
             <strong style="color:var(--brand-amber)">Security note:</strong> SHA-256 hashing prevents plaintext exposure in source &amp; storage. However, since this is a static app served over HTTPS (GitHub Pages), the file itself is the trust boundary — anyone who can serve a modified version of this file can bypass the gate. The real data protection is Google OAuth: the password gate is a UX lock, not a data lock. Your Google Sheet remains protected by Google's auth regardless.
@@ -722,7 +724,7 @@ const CONFIG = {
 const DEFAULT_SETTINGS = {
   columns: {
     deal: 'DEAL', invoiceNo: 'INV NO', invoiceDate: 'INV DT', division: 'DIVISON',
-    customer: 'CUSTOMER', vendor: 'VENDOR', salesOrder: 'SO No.', purchaseOrder: 'PO No.',
+    customer: 'CUSTOMER NAME', vendor: 'VENDOR NAME', salesOrder: 'SO No.', purchaseOrder: 'PO No.',
     quantity: 'Loaded_Qty', revenue: 'SALES VALUE AED', cost: 'PURCHASE COST AED', gp: 'GP',
     freight: 'Freight', bankCharges: 'TOTAL BANK CHARGES (AED)', otherCharges: 'Other Charges',
     purchaseCurrency: 'FRCU_PUR', status: 'STATUS'
@@ -742,6 +744,8 @@ const DEFAULT_SETTINGS = {
   adminPasswordHash: 'f0d69d50df9d46dbb367d8ab8265d051e4e15cd15277230b5c8cd0b0aba18fca',
   loginPasswordHash: 'b98704d12c1e2bc63833ba0bec1df393c26ddc6b912e6a2800ad1828810b8442',
   tableSortEnabled: true,
+  emailAllowlist: [],       // empty = allow any authenticated Google user; add emails to restrict
+  domainAllowlist: [],      // e.g. ['doubleclicktrading.com'] — any email @domain passes
   charts: {
     monthly:          { type: 'bar',     metric: 'both',     scope: 'completed', topN: 0,  sortBy: 'date',  showOthers: false },
     division:         { type: 'donut',   metric: 'gp',       scope: 'completed', topN: 0,  sortBy: 'value', showOthers: false },
@@ -1094,11 +1098,45 @@ function initGoogleAuth() {
     client_id: CONFIG.CLIENT_ID, scope: CONFIG.SCOPES,
     callback: async (response) => {
       if (response.error) { alert('Google sign-in failed: ' + response.error); return; }
+      // Verify the signed-in email against the allowlist before proceeding
+      try {
+        const info = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+          headers: { Authorization: 'Bearer ' + response.access_token }
+        }).then(r => r.json());
+        if (!isEmailAllowed(info.email)) {
+          showEmailDenied(info.email); return;
+        }
+        sessionStorage.setItem('dc-user-email', info.email);
+        sessionStorage.setItem('dc-user-name', info.name || info.email);
+      } catch(e) {
+        // If userinfo fails, still proceed (token is valid for Sheets)
+        console.warn('Could not verify email:', e);
+      }
       STATE.token = response.access_token;
       sessionStorage.setItem('dc-token', response.access_token);
       await launchApp();
     }
   });
+}
+function isEmailAllowed(email) {
+  if (!email) return true; // can't verify → let through (Sheet auth still applies)
+  const emails = (SETTINGS.emailAllowlist || []).map(e => e.trim().toLowerCase()).filter(Boolean);
+  const domains = (SETTINGS.domainAllowlist || []).map(d => d.trim().toLowerCase()).filter(Boolean);
+  if (emails.length === 0 && domains.length === 0) return true; // no restriction set
+  const lc = email.toLowerCase();
+  if (emails.includes(lc)) return true;
+  const domain = lc.split('@')[1] || '';
+  return domains.includes(domain);
+}
+function showEmailDenied(email) {
+  const errEl = $('login-error');
+  errEl.textContent = `Access denied: ${email} is not on the approved list. Contact your administrator.`;
+  errEl.classList.add('show');
+  // Reset Google button so they can try another account
+  const g = $('google-btn');
+  g.innerHTML = GOOGLE_SVG;
+  g.disabled = false; g.style.opacity = '1'; g.style.cursor = 'pointer';
+  sessionStorage.removeItem('dc-pwd-ok');
 }
 window.addEventListener('load', () => {
   initGoogleAuth();
@@ -1146,6 +1184,7 @@ async function fetchData() {
   const json = await res.json();
   const sheets = json.valueRanges || [];
   STATE.data.dc = parseSheet(sheets[0]?.values || [], 'dc');
+  if (STATE.headers.dc?.length) autoDetectColumns(STATE.headers.dc);
   STATE.data.purchase = parseSheet(sheets[1]?.values || [], 'purchase');
   STATE.data.sales = parseSheet(sheets[2]?.values || [], 'sales');
   STATE.data.bank = parseSheet(sheets[3]?.values || [], 'bank');
@@ -1158,6 +1197,34 @@ function parseSheet(rows, type) {
   if (type) STATE.headers[type] = headers;
   return rows.slice(1).map(row => { const o = {}; headers.forEach((h, i) => { o[h] = row[i]; }); return o; })
     .filter(o => Object.values(o).some(v => v !== '' && v !== null && v !== undefined));
+}
+
+/* Auto-detect column mappings by fuzzy-matching sheet headers against known field patterns */
+const COL_PATTERNS = {
+  customer:        [/^customer name$/i, /^customer$/i, /^client name$/i, /^buyer$/i],
+  vendor:          [/^vendor name$/i, /^vendor$/i, /^supplier name$/i, /^supplier$/i],
+  revenue:         [/sales value aed/i, /revenue.*aed/i, /^sales value$/i, /^revenue$/i],
+  cost:            [/purchase cost aed/i, /cost.*aed/i, /^purchase cost$/i],
+  status:          [/^status$/i],
+  division:        [/^divison$/i, /^division$/i, /^div$/i],
+  invoiceDate:     [/^inv dt$/i, /^invoice date$/i, /^date$/i],
+  invoiceNo:       [/^inv no$/i, /^invoice no/i, /^invoice number$/i],
+  bankCharges:     [/total bank charges/i, /^bank charges$/i],
+  freight:         [/^freight$/i],
+  otherCharges:    [/^other charges$/i, /^other$/i],
+  purchaseCurrency:[/^frcu_pur$/i, /^purchase currency$/i, /^pur.*curr/i],
+  quantity:        [/^loaded_qty$/i, /^quantity$/i, /^qty$/i, /^loaded qty$/i],
+  gp:              [/^gp$/i, /^gross profit$/i]
+};
+function autoDetectColumns(headers) {
+  let changed = false;
+  Object.entries(COL_PATTERNS).forEach(([key, patterns]) => {
+    const cur = SETTINGS.columns[key];
+    if (headers.includes(cur)) return; // current mapping still valid
+    const match = patterns.reduce((found, rx) => found || headers.find(h => rx.test(h)), null);
+    if (match) { SETTINGS.columns[key] = match; changed = true; console.log(`Auto-mapped ${key}: "${cur}" → "${match}"`); }
+  });
+  if (changed) saveSettings();
 }
 
 /* ─── NAVIGATION ─── */
@@ -1199,7 +1266,12 @@ function startAutoRefresh() {
     try { await fetchData(); renderAllPages(); updateFooterTime(); } catch (e) { console.warn('Refresh failed:', e); }
   }, (SETTINGS.refreshSeconds || 60) * 1000);
 }
-function updateFooterTime() { $('footer-time').textContent = 'Last refresh: ' + new Date().toLocaleTimeString('en-GB'); }
+function updateFooterTime() {
+  const email = sessionStorage.getItem('dc-user-email');
+  const name  = sessionStorage.getItem('dc-user-name');
+  const user  = name ? `${name}${email ? ' · ' + email : ''}` : (email || '');
+  $('footer-time').textContent = 'Last refresh: ' + new Date().toLocaleTimeString('en-GB') + (user ? '  ·  ' + user : '');
+}
 
 /* ─── FILTER POPULATION ─── */
 function populateFilterOptions() {
@@ -1888,6 +1960,8 @@ function renderAdmin() {
   $('adm-new-login-pw').value = ''; $('adm-new-admin-pw').value = '';
   $('adm-max-attempts').value = CONFIG.MAX_LOGIN_ATTEMPTS;
   $('adm-lockout-mins').value = CONFIG.LOCKOUT_MINUTES;
+  $('adm-email-allowlist').value = (SETTINGS.emailAllowlist || []).join('\n');
+  $('adm-domain-allowlist').value = (SETTINGS.domainAllowlist || []).join('\n');
   // Chart config section
   renderChartConfigPanel();
   renderAppearancePanel();
@@ -2083,6 +2157,8 @@ function saveAdmin() {
   const maxAtt = parseInt($('adm-max-attempts').value) || 5;
   const lockMins = parseInt($('adm-lockout-mins').value) || 15;
   CONFIG.MAX_LOGIN_ATTEMPTS = maxAtt; CONFIG.LOCKOUT_MINUTES = lockMins;
+  SETTINGS.emailAllowlist = ($('adm-email-allowlist').value || '').split('\n').map(e => e.trim().toLowerCase()).filter(Boolean);
+  SETTINGS.domainAllowlist = ($('adm-domain-allowlist').value || '').split('\n').map(d => d.trim().toLowerCase()).filter(Boolean);
   const hashUpdates = [];
   if (newLoginPw) hashUpdates.push(sha256hex(newLoginPw).then(h => { SETTINGS.loginPasswordHash = h; }));
   if (newAdminPw) hashUpdates.push(sha256hex(newAdminPw).then(h => { SETTINGS.adminPasswordHash = h; sessionStorage.removeItem('dc-admin-ok'); }));
