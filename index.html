@@ -8,7 +8,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@500;600;700;800&family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
-<script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://accounts.google.com; connect-src https://sheets.googleapis.com https://oauth2.googleapis.com https://accounts.google.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:;"/>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js" integrity="sha384-SDXH2u4vAFBDmRtM0nSBnrFUHv2LfixRZm/bQzGBK8k3IHBfKvJlJz4bpkfEdL4" crossorigin="anonymous"></script>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 
 <style>
@@ -615,7 +616,27 @@ th.sortable:hover::after { opacity: 0.7; }
         </div>
 
         <div class="adm-section">
-          <div class="adm-section-title">// 5 — Appearance</div>
+          <div class="adm-section-title">// 5 — Security</div>
+          <div class="adm-section-desc">Passwords are stored as SHA-256 hashes — never plaintext. Changing a password here updates the hash; the old password is immediately invalid. Lockout applies after too many failed login attempts.</div>
+          <div class="adm-grid">
+            <div class="adm-field"><label>New login password</label><input type="password" id="adm-new-login-pw" placeholder="Leave blank to keep current"/><span class="hint">Gate for the dashboard entry screen</span></div>
+            <div class="adm-field"><label>New admin password</label><input type="password" id="adm-new-admin-pw" placeholder="Leave blank to keep current"/><span class="hint">Gate for this terminal</span></div>
+            <div class="adm-field"><label>Max login attempts before lockout</label><input type="number" id="adm-max-attempts" min="2" max="20" step="1"/></div>
+            <div class="adm-field"><label>Lockout duration (minutes)</label><input type="number" id="adm-lockout-mins" min="1" max="60" step="1"/></div>
+          </div>
+          <div style="margin-top:14px;padding:12px 14px;background:rgba(255,197,51,0.06);border:1px solid rgba(255,197,51,0.15);border-radius:var(--radius-md);font-size:11px;color:var(--text-secondary);line-height:1.6">
+            <strong style="color:var(--brand-amber)">Security note:</strong> SHA-256 hashing prevents plaintext exposure in source &amp; storage. However, since this is a static app served over HTTPS (GitHub Pages), the file itself is the trust boundary — anyone who can serve a modified version of this file can bypass the gate. The real data protection is Google OAuth: the password gate is a UX lock, not a data lock. Your Google Sheet remains protected by Google's auth regardless.
+          </div>
+        </div>
+
+        <div class="adm-section">
+          <div class="adm-section-title">// 6 — Charts</div>
+          <div class="adm-section-desc">Control every chart: which data metric it shows, the data scope (completed deals / all deals / filtered), how many items (topN), and the visual type. Changes apply on Save &amp; Apply.</div>
+          <div id="adm-charts-grid"></div>
+        </div>
+
+        <div class="adm-section">
+          <div class="adm-section-title">// 7 — Appearance</div>
           <div class="adm-section-desc">Every visual token is editable and previews live as you change it. Start from a preset, then fine-tune. "Save & Apply" persists it; Export/Import moves the whole look between browsers.</div>
 
           <div style="margin-bottom:18px">
@@ -687,13 +708,14 @@ th.sortable:hover::after { opacity: 0.7; }
   </div>
 </div>
 <script>
-/* ─── CONFIG (credentials) ─── */
+/* ─── CONFIG (non-secret, deploy-time settings) ─── */
 const CONFIG = {
   CLIENT_ID: '753719534618-68befljcrte3g5vh0q5732erpqfnacqu.apps.googleusercontent.com',
   SHEET_ID: '1oPrMkjFcyf7-f_HzCJTCeBUG0HsqZXPoTWqMeDJ7y2k',
   SCOPES: 'https://www.googleapis.com/auth/spreadsheets.readonly',
-  PASSWORD: 'doubleclick2025',
-  SHEETS: { DC_ACCOUNTS: 'DC Accounts', PURCHASE: 'PURCHASE', SALES: 'SALES', BANK: 'BANK', FX: 'EXCHANGE RATE', LIST: 'LIST' }
+  SHEETS: { DC_ACCOUNTS: 'DC Accounts', PURCHASE: 'PURCHASE', SALES: 'SALES', BANK: 'BANK', FX: 'EXCHANGE RATE', LIST: 'LIST' },
+  MAX_LOGIN_ATTEMPTS: 5,        // lockout after N wrong login attempts
+  LOCKOUT_MINUTES: 15           // duration of lockout in minutes
 };
 
 /* ─── SETTINGS (admin-configurable, persisted in localStorage) ─── */
@@ -716,8 +738,24 @@ const DEFAULT_SETTINGS = {
   cancelledStatus: 'CANCELLED',
   marginThresholds: { healthy: 5, caution: 2 },
   refreshSeconds: 60,
-  adminPassword: 'admin2025',
+  adminPassword: 'Admin2025',
+  adminPasswordHash: 'f0d69d50df9d46dbb367d8ab8265d051e4e15cd15277230b5c8cd0b0aba18fca',
+  loginPasswordHash: 'b98704d12c1e2bc63833ba0bec1df393c26ddc6b912e6a2800ad1828810b8442',
   tableSortEnabled: true,
+  charts: {
+    monthly:          { type: 'bar',     metric: 'both',     scope: 'completed', topN: 0,  sortBy: 'date',  showOthers: false },
+    division:         { type: 'donut',   metric: 'gp',       scope: 'completed', topN: 0,  sortBy: 'value', showOthers: false },
+    topCustomers:     { type: 'bar',     metric: 'gp',       scope: 'completed', topN: 5,  sortBy: 'value', showOthers: false },
+    status:           { type: 'pie',     metric: 'count',    scope: 'all',       topN: 0,  sortBy: 'value', showOthers: false },
+    customerGp:       { type: 'bar',     metric: 'gp',       scope: 'completed', topN: 10, sortBy: 'value', showOthers: false },
+    customerPie:      { type: 'donut',   metric: 'revenue',  scope: 'completed', topN: 10, sortBy: 'value', showOthers: true  },
+    vendorSpend:      { type: 'bar',     metric: 'cost',     scope: 'completed', topN: 10, sortBy: 'value', showOthers: false },
+    vendorFx:         { type: 'pie',     metric: 'cost',     scope: 'completed', topN: 8,  sortBy: 'value', showOthers: true  },
+    bsplCustomerPie:  { type: 'donut',   metric: 'revenue',  scope: 'filtered',  topN: 10, sortBy: 'value', showOthers: true  },
+    bsplVendorPie:    { type: 'donut',   metric: 'cost',     scope: 'filtered',  topN: 10, sortBy: 'value', showOthers: true  },
+    invTrend:         { type: 'area',    metric: 'revenue',  scope: 'completed', topN: 0,  sortBy: 'date',  showOthers: false },
+    invMix:           { type: 'donut',   metric: 'gp',       scope: 'completed', topN: 0,  sortBy: 'value', showOthers: false }
+  },
   appearance: {
     accent: { red: '#FF2D2D', pink: '#FF45AC', amber: '#FFC533', green: '#00E5A0', info: '#4D9FFF', c6: '#9B6CFF', c7: '#FF8A3D', c8: '#3DE0E0' },
     chartSeries: ['#FF2D2D', '#FF45AC', '#FFC533', '#00E5A0', '#4D9FFF', '#9B6CFF', '#FF8A3D', '#3DE0E0'],
@@ -806,6 +844,42 @@ function loadSettings() {
 }
 let SETTINGS = loadSettings();
 function saveSettings() { localStorage.setItem('dc-settings', JSON.stringify(SETTINGS)); }
+
+/* ─── SHA-256 AUTH ENGINE ─── */
+async function sha256hex(str) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+const AUTH = {
+  get loginHash() { return SETTINGS.loginPasswordHash; },
+  get adminHash() { return SETTINGS.adminPasswordHash; },
+  attempts: parseInt(sessionStorage.getItem('dc-login-attempts') || '0'),
+  lockUntil: parseInt(sessionStorage.getItem('dc-lock-until') || '0'),
+  isLockedOut() {
+    if (this.lockUntil && Date.now() < this.lockUntil) return true;
+    if (this.lockUntil && Date.now() >= this.lockUntil) {
+      this.attempts = 0; this.lockUntil = 0;
+      sessionStorage.removeItem('dc-login-attempts'); sessionStorage.removeItem('dc-lock-until');
+    }
+    return false;
+  },
+  recordFail() {
+    this.attempts++;
+    sessionStorage.setItem('dc-login-attempts', this.attempts);
+    if (this.attempts >= CONFIG.MAX_LOGIN_ATTEMPTS) {
+      this.lockUntil = Date.now() + CONFIG.LOCKOUT_MINUTES * 60 * 1000;
+      sessionStorage.setItem('dc-lock-until', this.lockUntil);
+    }
+  },
+  recordSuccess() {
+    this.attempts = 0; this.lockUntil = 0;
+    sessionStorage.removeItem('dc-login-attempts'); sessionStorage.removeItem('dc-lock-until');
+  },
+  remainingLockout() {
+    const ms = this.lockUntil - Date.now();
+    return ms > 0 ? Math.ceil(ms / 60000) : 0;
+  }
+};
 
 /* ─── APPEARANCE ENGINE ─── */
 function rgba(hex, a) {
@@ -981,15 +1055,30 @@ $('theme-toggle').addEventListener('click', () => {
 });
 setTheme(localStorage.getItem('dc-theme') || SETTINGS.defaultTheme || 'dark');
 /* ─── LOGIN ─── */
-function checkPassword() {
-  if ($('password-input').value === CONFIG.PASSWORD) {
+const GOOGLE_SVG = '<svg viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg> Sign in with Google';
+async function checkPassword() {
+  const errEl = $('login-error');
+  if (AUTH.isLockedOut()) {
+    errEl.textContent = `Too many attempts. Locked for ${AUTH.remainingLockout()} min.`;
+    errEl.classList.add('show'); return;
+  }
+  const val = $('password-input').value; if (!val) return;
+  const hash = await sha256hex(val);
+  if (hash === AUTH.loginHash) {
+    AUTH.recordSuccess();
     sessionStorage.setItem('dc-pwd-ok', '1');
     $('password-input').disabled = true;
-    $('password-btn').textContent = '✓ Verified'; $('password-btn').disabled = true;
+    $('password-btn').textContent = '\u2713 Verified'; $('password-btn').disabled = true;
     const g = $('google-btn'); g.disabled = false; g.style.opacity = '1'; g.style.cursor = 'pointer';
-    g.innerHTML = '<svg viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg> Sign in with Google';
-    $('login-error').classList.remove('show');
-  } else { $('login-error').classList.add('show'); $('password-input').value = ''; }
+    g.innerHTML = GOOGLE_SVG; errEl.classList.remove('show');
+  } else {
+    AUTH.recordFail();
+    const rem = CONFIG.MAX_LOGIN_ATTEMPTS - AUTH.attempts;
+    errEl.textContent = AUTH.isLockedOut()
+      ? `Too many attempts. Locked for ${AUTH.remainingLockout()} min.`
+      : `Incorrect password. ${rem} attempt${rem !== 1 ? 's' : ''} remaining.`;
+    errEl.classList.add('show'); $('password-input').value = '';
+  }
 }
 $('password-btn').addEventListener('click', checkPassword);
 $('password-input').addEventListener('keydown', e => { if (e.key === 'Enter') checkPassword(); });
@@ -1291,7 +1380,7 @@ function getFilteredDeals() {
 }
 
 /* ─── TABLE SORT ENGINE ─── */
-const TABLE_SORT = { deals: { col: 'date', dir: 'desc' }, customers: { col: 'gp', dir: 'desc' }, vendors: { col: 'cost', dir: 'desc' } };
+const TABLE_SORT = { deals: { col: 'date', dir: 'desc' }, customers: { col: 'gp', dir: 'desc' }, vendors: { col: 'cost', dir: 'desc' }, bspl: { col: 'metric', dir: 'asc' } };
 function setupTableSort() {
   document.addEventListener('click', e => {
     if (!SETTINGS.tableSortEnabled) return;
@@ -1304,6 +1393,7 @@ function setupTableSort() {
     if (tbl === 'deals') renderDeals();
     if (tbl === 'customers') renderCustomers();
     if (tbl === 'vendors') renderVendors();
+    if (tbl === 'bspl') renderBsplDivisionPnl();
   });
 }
 function updateSortHeaders(tbl) {
@@ -1314,7 +1404,7 @@ function updateSortHeaders(tbl) {
   });
 }
 function applySortHeaders() {
-  ['deals', 'customers', 'vendors'].forEach(tbl => {
+  ['deals', 'customers', 'vendors', 'bspl'].forEach(tbl => {
     const enabled = SETTINGS.tableSortEnabled;
     document.querySelectorAll(`th[data-table="${tbl}"]`).forEach(th => {
       th.classList.toggle('sortable', enabled);
@@ -1457,16 +1547,20 @@ function renderCustomerGpChart(sorted) {
 }
 function renderCustomerPieChart(byRev) {
   const t = getChartTheme();
-  const top = byRev.slice(0, 10);
-  const othersArr = byRev.slice(10);
-  const othersRev = othersArr.reduce((s, c) => s + c.rev, 0);
+  const cfg = SETTINGS.charts.customerPie || {};
+  const items = getChartData({...cfg, scope:'completed'}, STATE.data.dc);
+  const topN = cfg.topN || 10;
+  const top = items.slice(0, topN);
+  const othersArr = items.slice(topN);
+  const othersVal = cfg.showOthers ? othersArr.reduce((s,x)=>s+x.value,0) : 0;
   const colors = PAL.series;
-  const data = top.map((c, i) => ({ name: c.name.length > 22 ? c.name.slice(0, 22) + '…' : c.name, fullName: c.name, value: Math.round(c.rev), itemStyle: { color: colors[i % colors.length] } }));
-  if (othersRev > 0) data.push({ name: `Others (${othersArr.length})`, fullName: `${othersArr.length} other customers`, value: Math.round(othersRev), itemStyle: { color: 'rgba(255,255,255,0.12)' } });
+  const data = top.map((x,i) => ({ name: x.name.length>22?x.name.slice(0,22)+'\u2026':x.name, fullName:x.name, value:x.value, itemStyle:{color:colors[i%colors.length]} }));
+  if (cfg.showOthers && othersVal>0) data.push({ name:`Others (${othersArr.length})`, fullName:`${othersArr.length} other customers`, value:Math.round(othersVal), itemStyle:{color:'rgba(255,255,255,0.12)'} });
+  const isDonut = cfg.type !== 'pie';
   initChart('chart-customer-pie', {
-    backgroundColor: 'transparent',
-    tooltip: { trigger: 'item', backgroundColor: t.tooltipBg, borderColor: t.tooltipBorder, borderWidth: 1, textStyle: { color: t.tooltipText }, formatter: (p) => `<div style="font-weight:600;margin-bottom:4px">${p.data.fullName || p.name}</div><div style="font-family:JetBrains Mono">${money(p.value)} · ${p.percent}%</div>` },
-    series: [{ type: 'pie', radius: ['40%', '70%'], center: ['50%', '50%'], itemStyle: { borderColor: t.tooltipBg, borderWidth: 2 }, label: { color: t.textColor, fontSize: 10, formatter: '{b}\n{d}%' }, data, animationDuration: 1000 }]
+    backgroundColor:'transparent',
+    tooltip:{trigger:'item',backgroundColor:t.tooltipBg,borderColor:t.tooltipBorder,borderWidth:1,textStyle:{color:t.tooltipText},formatter:(p)=>`<div style="font-weight:600;margin-bottom:4px">${p.data.fullName||p.name}</div><div style="font-family:JetBrains Mono">${money(p.value)} \u00b7 ${p.percent}%</div>`},
+    series:[{type:'pie',radius:isDonut?['38%','68%']:'72%',center:['50%','50%'],itemStyle:{borderColor:t.tooltipBg,borderWidth:2},label:{color:t.textColor,fontSize:10,formatter:'{b}\n{d}%'},data,animationDuration:1000}]
   });
 }
 
@@ -1577,31 +1671,39 @@ function renderBSPL() {
   renderBsplCustomerPie(filtered); renderBsplVendorPie(filtered); renderBsplDivisionPnl();
 }
 function renderBsplCustomerPie(filtered) {
-  const t = getChartTheme(); const byCust = {};
-  filtered.forEach(r => { const c = rawVal(r, 'customer') || 'Unknown'; byCust[c] = (byCust[c] || 0) + num(r, 'revenue'); });
-  const sorted = Object.entries(byCust).sort((a, b) => b[1] - a[1]); const top = sorted.slice(0, 8);
-  const othersRev = sorted.slice(8).reduce((s, [, v]) => s + v, 0);
+  const t = getChartTheme();
+  const cfg = SETTINGS.charts.bsplCustomerPie || {};
+  const metric = cfg.metric || 'revenue';
+  const by = {}; filtered.forEach(r => { const k = rawVal(r,'customer')||'Unknown'; by[k]=(by[k]||0)+(metric==='gp'?dealGP(r):num(r,'revenue')); });
+  const items = Object.entries(by).sort((a,b)=>b[1]-a[1]).map(([name,value])=>({name,value:Math.round(value)}));
+  const topN = cfg.topN||10; const top = items.slice(0,topN);
+  const othersVal = cfg.showOthers ? items.slice(topN).reduce((s,x)=>s+x.value,0) : 0;
   const colors = PAL.series;
-  const data = top.map(([name, v], i) => ({ name: name.length > 20 ? name.slice(0, 20) + '…' : name, value: Math.round(v), itemStyle: { color: colors[i] } }));
-  if (othersRev > 0) data.push({ name: 'Others', value: Math.round(othersRev), itemStyle: { color: 'rgba(255,255,255,0.15)' } });
+  const data = top.map((x,i)=>({name:x.name.length>20?x.name.slice(0,20)+'…':x.name,fullName:x.name,value:x.value,itemStyle:{color:colors[i%colors.length]}}));
+  if (cfg.showOthers && othersVal>0) data.push({name:`Others (${items.length-topN})`,fullName:`${items.length-topN} others`,value:othersVal,itemStyle:{color:'rgba(255,255,255,0.12)'}});
+  const isDonut = cfg.type !== 'pie';
   initChart('chart-bspl-customer-pie', {
-    backgroundColor: 'transparent',
-    tooltip: { trigger: 'item', backgroundColor: t.tooltipBg, borderColor: t.tooltipBorder, borderWidth: 1, textStyle: { color: t.tooltipText }, formatter: (p) => `<div style="font-weight:600">${p.name}</div><div style="font-family:JetBrains Mono">${money(p.value)} · ${p.percent}%</div>` },
-    series: [{ type: 'pie', radius: ['40%', '70%'], center: ['50%', '50%'], itemStyle: { borderColor: t.tooltipBg, borderWidth: 2 }, label: { color: t.textColor, fontSize: 10, formatter: '{b}\n{d}%' }, data, animationDuration: 900 }]
+    backgroundColor:'transparent',
+    tooltip:{trigger:'item',backgroundColor:t.tooltipBg,borderColor:t.tooltipBorder,borderWidth:1,textStyle:{color:t.tooltipText},formatter:(p)=>`<div style="font-weight:600">${p.data.fullName||p.name}</div><div style="font-family:JetBrains Mono">${money(p.value)} · ${p.percent}%</div>`},
+    series:[{type:'pie',radius:isDonut?['38%','68%']:'72%',center:['50%','50%'],itemStyle:{borderColor:t.tooltipBg,borderWidth:2},label:{color:t.textColor,fontSize:10,formatter:'{b}\n{d}%'},data,animationDuration:900}]
   });
 }
 function renderBsplVendorPie(filtered) {
-  const t = getChartTheme(); const byVnd = {};
-  filtered.forEach(r => { const v = rawVal(r, 'vendor') || 'Unknown'; byVnd[v] = (byVnd[v] || 0) + num(r, 'cost'); });
-  const sorted = Object.entries(byVnd).sort((a, b) => b[1] - a[1]); const top = sorted.slice(0, 8);
-  const othersVal = sorted.slice(8).reduce((s, [, v]) => s + v, 0);
+  const t = getChartTheme();
+  const cfg = SETTINGS.charts.bsplVendorPie || {};
+  const metric = cfg.metric || 'cost';
+  const by = {}; filtered.forEach(r => { const k = rawVal(r,'vendor')||'Unknown'; by[k]=(by[k]||0)+(metric==='gp'?dealGP(r):num(r,'cost')); });
+  const items = Object.entries(by).sort((a,b)=>b[1]-a[1]).map(([name,value])=>({name,value:Math.round(value)}));
+  const topN = cfg.topN||10; const top = items.slice(0,topN);
+  const othersVal = cfg.showOthers ? items.slice(topN).reduce((s,x)=>s+x.value,0) : 0;
   const colors = PAL.series;
-  const data = top.map(([name, v], i) => ({ name: name.length > 20 ? name.slice(0, 20) + '…' : name, value: Math.round(v), itemStyle: { color: colors[i] } }));
-  if (othersVal > 0) data.push({ name: 'Others', value: Math.round(othersVal), itemStyle: { color: 'rgba(255,255,255,0.15)' } });
+  const data = top.map((x,i)=>({name:x.name.length>20?x.name.slice(0,20)+'…':x.name,fullName:x.name,value:x.value,itemStyle:{color:colors[i%colors.length]}}));
+  if (cfg.showOthers && othersVal>0) data.push({name:`Others (${items.length-topN})`,fullName:`${items.length-topN} others`,value:othersVal,itemStyle:{color:'rgba(255,255,255,0.12)'}});
+  const isDonut = cfg.type !== 'pie';
   initChart('chart-bspl-vendor-pie', {
-    backgroundColor: 'transparent',
-    tooltip: { trigger: 'item', backgroundColor: t.tooltipBg, borderColor: t.tooltipBorder, borderWidth: 1, textStyle: { color: t.tooltipText }, formatter: (p) => `<div style="font-weight:600">${p.name}</div><div style="font-family:JetBrains Mono">${money(p.value)} · ${p.percent}%</div>` },
-    series: [{ type: 'pie', radius: ['40%', '70%'], center: ['50%', '50%'], itemStyle: { borderColor: t.tooltipBg, borderWidth: 2 }, label: { color: t.textColor, fontSize: 10, formatter: '{b}\n{d}%' }, data, animationDuration: 900 }]
+    backgroundColor:'transparent',
+    tooltip:{trigger:'item',backgroundColor:t.tooltipBg,borderColor:t.tooltipBorder,borderWidth:1,textStyle:{color:t.tooltipText},formatter:(p)=>`<div style="font-weight:600">${p.data.fullName||p.name}</div><div style="font-family:JetBrains Mono">${money(p.value)} · ${p.percent}%</div>`},
+    series:[{type:'pie',radius:isDonut?['38%','68%']:'72%',center:['50%','50%'],itemStyle:{borderColor:t.tooltipBg,borderWidth:2},label:{color:t.textColor,fontSize:10,formatter:'{b}\n{d}%'},data,animationDuration:900}]
   });
 }
 function renderBsplDivisionPnl() {
@@ -1621,8 +1723,9 @@ function renderBsplDivisionPnl() {
     byDiv[d].rev += num(r, 'revenue'); byDiv[d].cost += num(r, 'cost'); byDiv[d].freight += freightAED(r);
     byDiv[d].bank += num(r, 'bankCharges'); byDiv[d].other += num(r, 'otherCharges'); byDiv[d].netGp += dealGP(r); byDiv[d].deals += 1;
   });
-  const divHeaders = divisions.map(d => `<th style="color:${divColors[d] || 'var(--text-primary)'}">${escapeHtml(d)}</th>`).join('');
-  $('bspl-div-pnl-head').innerHTML = `<tr><th style="text-align:left">Metric</th>${divHeaders}<th>Total</th></tr>`;
+  const divHeaders = divisions.map(d => `<th class="sortable" data-col="${escapeHtml(d)}" data-table="bspl" style="color:${divColors[d] || 'var(--text-primary)'}">${escapeHtml(d)}</th>`).join('');
+  $('bspl-div-pnl-head').innerHTML = `<tr><th class="sortable" data-col="metric" data-table="bspl" style="text-align:left">Metric</th>${divHeaders}<th>Total</th></tr>`;
+  setTimeout(() => applySortHeaders(), 0);
   const rows = [
     { label: 'Revenue', key: 'rev' }, { label: 'Purchase Cost', key: 'cost' }, { label: 'Gross Profit', isGross: true },
     { label: 'Freight', key: 'freight' }, { label: 'Bank Charges', key: 'bank' }, { label: 'Other Charges', key: 'other' },
@@ -1741,9 +1844,19 @@ function setupAdmin() {
   });
 }
 function unlockAdmin() {
-  if ($('adm-lock-input').value === SETTINGS.adminPassword) {
-    sessionStorage.setItem('dc-admin-ok', '1'); $('adm-lock-err').style.display = 'none'; renderAdmin();
-  } else { $('adm-lock-err').style.display = 'block'; }
+  const val = $('adm-lock-input').value; if (!val) return;
+  sha256hex(val).then(hash => {
+    if (hash === AUTH.adminHash) {
+      sessionStorage.setItem('dc-admin-ok', '1');
+      $('adm-lock-err').style.display = 'none';
+      $('adm-lock-input').value = '';
+      renderAdmin();
+    } else {
+      $('adm-lock-err').textContent = 'Wrong admin password.';
+      $('adm-lock-err').style.display = 'block';
+      $('adm-lock-input').value = '';
+    }
+  });
 }
 function renderAdmin() {
   const unlocked = sessionStorage.getItem('dc-admin-ok') === '1';
@@ -1769,10 +1882,133 @@ function renderAdmin() {
   $('adm-margin-hi').value = SETTINGS.marginThresholds.healthy;
   $('adm-margin-lo').value = SETTINGS.marginThresholds.caution;
   $('adm-refresh').value = SETTINGS.refreshSeconds;
-  $('adm-adminpass').value = SETTINGS.adminPassword;
+  $('adm-adminpass').value = '';  // never pre-fill password field
   $('adm-table-sort').checked = SETTINGS.tableSortEnabled !== false;
+  // Security section
+  $('adm-new-login-pw').value = ''; $('adm-new-admin-pw').value = '';
+  $('adm-max-attempts').value = CONFIG.MAX_LOGIN_ATTEMPTS;
+  $('adm-lockout-mins').value = CONFIG.LOCKOUT_MINUTES;
+  // Chart config section
+  renderChartConfigPanel();
   renderAppearancePanel();
 }
+/* ─── CHART CONFIG PANEL ─── */
+const CHART_DEFS = [
+  { key: 'monthly',         label: 'Overview · Monthly trend',        types: ['bar','line','area'],          metrics: ['revenue','gp','both'],              scopes: ['completed','all'],      hasTopN: false },
+  { key: 'division',        label: 'Overview · Division GP mix',      types: ['pie','donut','bar'],           metrics: ['gp','revenue','cost'],              scopes: ['completed','all'],      hasTopN: false },
+  { key: 'topCustomers',    label: 'Overview · Top customers',        types: ['bar'],                         metrics: ['gp','revenue'],                     scopes: ['completed','all'],      hasTopN: true  },
+  { key: 'status',          label: 'Overview · Deal status',          types: ['pie','donut','bar'],           metrics: ['count'],                            scopes: ['all','completed'],      hasTopN: false },
+  { key: 'customerGp',      label: 'Customers · GP by customer',      types: ['bar'],                         metrics: ['gp','revenue'],                     scopes: ['completed','all'],      hasTopN: true  },
+  { key: 'customerPie',     label: 'Customers · Concentration',       types: ['donut','pie','bar'],           metrics: ['revenue','gp'],                     scopes: ['completed','all'],      hasTopN: true  },
+  { key: 'vendorSpend',     label: 'Vendors · Spend by vendor',       types: ['bar'],                         metrics: ['cost','gp'],                        scopes: ['completed','all'],      hasTopN: true  },
+  { key: 'vendorFx',        label: 'Vendors · Currency mix',          types: ['pie','donut','bar'],           metrics: ['cost','count'],                     scopes: ['completed','all'],      hasTopN: true  },
+  { key: 'bsplCustomerPie', label: 'BSPL · Customer revenue mix',     types: ['donut','pie','bar'],           metrics: ['revenue','gp'],                     scopes: ['filtered','completed'], hasTopN: true  },
+  { key: 'bsplVendorPie',   label: 'BSPL · Vendor spend mix',        types: ['donut','pie','bar'],           metrics: ['cost','gp'],                        scopes: ['filtered','completed'], hasTopN: true  },
+  { key: 'invTrend',        label: 'Investor · Revenue trend',        types: ['area','bar','line'],           metrics: ['revenue','gp'],                     scopes: ['completed','all'],      hasTopN: false },
+  { key: 'invMix',          label: 'Investor · Division mix',         types: ['donut','pie','bar'],           metrics: ['gp','revenue'],                     scopes: ['completed','all'],      hasTopN: false },
+];
+const METRIC_LABELS = { revenue: 'Revenue', gp: 'Gross Profit', cost: 'Purchase Cost', count: 'Deal Count', both: 'Revenue + GP' };
+const SCOPE_LABELS  = { completed: 'Completed deals only', all: 'All deals', filtered: 'BSPL filter selection' };
+const TYPE_LABELS   = { bar: 'Bar chart', line: 'Line chart', area: 'Area chart', pie: 'Pie chart', donut: 'Donut chart' };
+
+function renderChartConfigPanel() {
+  const grid = $('adm-charts-grid'); if (!grid) return;
+  grid.innerHTML = CHART_DEFS.map(def => {
+    const cfg = SETTINGS.charts[def.key] || {};
+    const typeOpts = def.types.map(t => `<option value="${t}"${cfg.type===t?' selected':''}>${TYPE_LABELS[t]}</option>`).join('');
+    const metricOpts = def.metrics.map(m => `<option value="${m}"${cfg.metric===m?' selected':''}>${METRIC_LABELS[m]}</option>`).join('');
+    const scopeOpts = def.scopes.map(s => `<option value="${s}"${cfg.scope===s?' selected':''}>${SCOPE_LABELS[s]}</option>`).join('');
+    const topNField = def.hasTopN ? `<div class="adm-field"><label>Show top N</label><input type="number" id="adm-ch-${def.key}-topN" value="${cfg.topN||10}" min="3" max="30" step="1"/></div>` : '';
+    const othersField = def.hasTopN ? `<label class="adm-check" style="margin-top:10px"><input type="checkbox" id="adm-ch-${def.key}-others"${cfg.showOthers?' checked':''}/> Show "Others" bucket</label>` : '';
+    return `<div style="padding:14px;background:var(--bg-elevated);border-radius:var(--radius-md);border:1px solid var(--border-subtle);margin-bottom:10px">
+      <div style="font-size:11px;font-weight:600;color:var(--text-secondary);margin-bottom:10px;font-family:var(--font-mono)">${def.label}</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px">
+        <div class="adm-field" style="margin:0"><label>Chart type</label><select id="adm-ch-${def.key}-type">${typeOpts}</select></div>
+        <div class="adm-field" style="margin:0"><label>Data metric</label><select id="adm-ch-${def.key}-metric">${metricOpts}</select></div>
+        <div class="adm-field" style="margin:0"><label>Data scope</label><select id="adm-ch-${def.key}-scope">${scopeOpts}</select></div>
+        ${topNField}
+      </div>${othersField}</div>`;
+  }).join('');
+}
+function commitChartConfig() {
+  CHART_DEFS.forEach(def => {
+    const c = SETTINGS.charts[def.key] || {};
+    const g = (id) => $(id);
+    c.type   = g(`adm-ch-${def.key}-type`)?.value   || c.type;
+    c.metric = g(`adm-ch-${def.key}-metric`)?.value || c.metric;
+    c.scope  = g(`adm-ch-${def.key}-scope`)?.value  || c.scope;
+    if (def.hasTopN) {
+      c.topN       = parseInt(g(`adm-ch-${def.key}-topN`)?.value) || c.topN;
+      c.showOthers = g(`adm-ch-${def.key}-others`)?.checked ?? c.showOthers;
+    }
+    SETTINGS.charts[def.key] = c;
+  });
+}
+
+/* ─── CHART DISPATCH ENGINE ─── */
+// Universal data getter for a chart config + deals array
+function getChartData(cfg, deals) {
+  // scope filter
+  let rows = deals;
+  if (cfg.scope === 'completed') rows = deals.filter(isCompleted);
+  else if (cfg.scope === 'all')  rows = deals;
+  // metric aggregation
+  const metric = cfg.metric;
+  if (metric === 'count') {
+    const by = {}; rows.forEach(r => { const k = rawVal(r,'status')||'UNKNOWN'; by[k]=(by[k]||0)+1; });
+    return Object.entries(by).sort((a,b)=>b[1]-a[1]).map(([name,value])=>({name,value}));
+  }
+  if (metric === 'revenue') {
+    const by = {}; rows.forEach(r => { const k = rawVal(r,'customer')||'Unknown'; by[k]=(by[k]||0)+num(r,'revenue'); });
+    return Object.entries(by).sort((a,b)=>b[1]-a[1]).map(([name,value])=>({name,value:Math.round(value)}));
+  }
+  if (metric === 'gp') {
+    const by = {}; rows.forEach(r => { const k = rawVal(r,'customer')||'Unknown'; by[k]=(by[k]||0)+dealGP(r); });
+    return Object.entries(by).sort((a,b)=>b[1]-a[1]).map(([name,value])=>({name,value:Math.round(value)}));
+  }
+  if (metric === 'cost') {
+    const by = {}; rows.forEach(r => { const k = rawVal(r,'vendor')||'Unknown'; by[k]=(by[k]||0)+num(r,'cost'); });
+    return Object.entries(by).sort((a,b)=>b[1]-a[1]).map(([name,value])=>({name,value:Math.round(value)}));
+  }
+  return [];
+}
+function buildPieConfig(cfg, items, t) {
+  const topN = cfg.topN || 10;
+  const top = items.slice(0, topN);
+  const othersVal = cfg.showOthers ? items.slice(topN).reduce((s,x)=>s+x.value,0) : 0;
+  const colors = PAL.series;
+  const data = top.map((x,i) => ({ name: x.name.length>22?x.name.slice(0,22)+'…':x.name, fullName: x.name, value: x.value, itemStyle: { color: colors[i % colors.length] } }));
+  if (cfg.showOthers && othersVal > 0) data.push({ name:`Others (${items.length-topN})`, fullName:`${items.length-topN} others`, value: Math.round(othersVal), itemStyle:{ color:'rgba(255,255,255,0.12)' } });
+  const isDonut = cfg.type === 'donut';
+  return {
+    backgroundColor: 'transparent',
+    tooltip: { trigger:'item', backgroundColor:t.tooltipBg, borderColor:t.tooltipBorder, borderWidth:1, textStyle:{color:t.tooltipText}, formatter:(p)=>`<div style="font-weight:600;margin-bottom:4px">${p.data.fullName||p.name}</div><div style="font-family:JetBrains Mono">${money(p.value)} · ${p.percent}%</div>` },
+    series: [{ type:'pie', radius: isDonut ? ['38%','68%'] : '72%', center:['50%','50%'], itemStyle:{borderColor:t.tooltipBg,borderWidth:2}, label:{color:t.textColor,fontSize:10,formatter:'{b}\n{d}%'}, data, animationDuration:900 }]
+  };
+}
+function buildBarConfig(cfg, items, t, horizontal=true) {
+  const topN = cfg.topN || 10;
+  const top = items.slice(0, topN);
+  if (horizontal) {
+    return {
+      backgroundColor:'transparent', grid:{left:180,right:40,top:10,bottom:20},
+      tooltip:{backgroundColor:t.tooltipBg,borderColor:t.tooltipBorder,borderWidth:1,textStyle:{color:t.tooltipText},formatter:(p)=>`<div style="font-weight:600">${p[0].name}</div><div style="font-family:JetBrains Mono">${money(p[0].value)}</div>`},
+      xAxis:{type:'value',axisLine:{show:false},axisTick:{show:false},axisLabel:{color:t.textColor,fontSize:10,formatter:(v)=>fmtAED(v)},splitLine:{lineStyle:{color:t.gridColor}}},
+      yAxis:{type:'category',data:top.map(x=>x.name.length>25?x.name.slice(0,25)+'…':x.name).reverse(),axisLine:{show:false},axisTick:{show:false},axisLabel:{color:t.textColor,fontSize:10}},
+      series:[{type:'bar',data:top.map(x=>x.value).reverse(),itemStyle:{color:{type:'linear',x:0,y:0,x2:1,y2:0,colorStops:[{offset:0,color:rgba(PAL.red,0.4)},{offset:1,color:PAL.red}]},borderRadius:[0,4,4,0]},barWidth:'60%',animationDuration:1000}]
+    };
+  }
+}
+function dispatchChart(chartId, cfgKey, deals, t) {
+  const cfg = SETTINGS.charts[cfgKey]; if (!cfg) return;
+  const items = getChartData(cfg, deals);
+  if (!items.length) return;
+  const opts = (cfg.type === 'pie' || cfg.type === 'donut')
+    ? buildPieConfig(cfg, items, t)
+    : buildBarConfig(cfg, items, t);
+  if (opts) initChart(chartId, opts);
+}
+
 const ACCENT_KEYS = [['red', 'Red / primary'], ['pink', 'Pink'], ['amber', 'Amber'], ['green', 'Green / success'], ['info', 'Info / blue'], ['c6', 'Extra 6'], ['c7', 'Extra 7'], ['c8', 'Extra 8']];
 const SURF_KEYS = [['primary', 'Page background'], ['secondary', 'Nav / bars'], ['tertiary', 'Tertiary'], ['card', 'Cards'], ['elevated', 'Elevated / inputs']];
 const APP_RANGE_LABELS = { 'adm-text-secA': 'adm-text-secA-v', 'adm-text-terA': 'adm-text-terA-v', 'adm-text-mutA': 'adm-text-mutA-v', 'adm-border-subA': 'adm-border-subA-v', 'adm-border-defA': 'adm-border-defA-v', 'adm-border-strA': 'adm-border-strA-v', 'adm-basefont': 'adm-basefont-v', 'adm-rad-sm': 'adm-rad-sm-v', 'adm-rad-md': 'adm-rad-md-v', 'adm-rad-lg': 'adm-rad-lg-v', 'adm-rad-xl': 'adm-rad-xl-v', 'adm-glow': 'adm-glow-v', 'adm-grid': 'adm-grid-v', 'adm-anim': 'adm-anim-v' };
@@ -1841,12 +2077,25 @@ function saveAdmin() {
   SETTINGS.adminPassword = $('adm-adminpass').value || SETTINGS.adminPassword;
   SETTINGS.tableSortEnabled = $('adm-table-sort').checked;
   applySortHeaders();
-  commitAppearance();
-  saveSettings();
-  $('status-text').textContent = 'Live · ' + SETTINGS.refreshSeconds + 's';
-  applyAppearance(); startAutoRefresh(); populateFilterOptions(); renderAllPages();
-  const st = $('adm-status'); st.textContent = '✓ Saved & applied'; st.style.opacity = '1';
-  setTimeout(() => st.style.opacity = '0', 2500);
+  // Security: update password hashes if new passwords entered
+  const newLoginPw = $('adm-new-login-pw').value.trim();
+  const newAdminPw = $('adm-new-admin-pw').value.trim();
+  const maxAtt = parseInt($('adm-max-attempts').value) || 5;
+  const lockMins = parseInt($('adm-lockout-mins').value) || 15;
+  CONFIG.MAX_LOGIN_ATTEMPTS = maxAtt; CONFIG.LOCKOUT_MINUTES = lockMins;
+  const hashUpdates = [];
+  if (newLoginPw) hashUpdates.push(sha256hex(newLoginPw).then(h => { SETTINGS.loginPasswordHash = h; }));
+  if (newAdminPw) hashUpdates.push(sha256hex(newAdminPw).then(h => { SETTINGS.adminPasswordHash = h; sessionStorage.removeItem('dc-admin-ok'); }));
+  // Chart config
+  commitChartConfig();
+  Promise.all(hashUpdates).then(() => {
+    commitAppearance();
+    saveSettings();
+    $('status-text').textContent = 'Live · ' + SETTINGS.refreshSeconds + 's';
+    applyAppearance(); startAutoRefresh(); populateFilterOptions(); renderAllPages();
+    const st = $('adm-status'); st.textContent = '✓ Saved & applied' + (hashUpdates.length ? ' · passwords updated' : ''); st.style.opacity = '1';
+    setTimeout(() => st.style.opacity = '0', 2500);
+  });
 }
 function resetAdmin() {
   if (!confirm('Reset ALL settings back to defaults? This cannot be undone.')) return;
