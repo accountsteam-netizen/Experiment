@@ -313,6 +313,17 @@ body.scanlines-on .scan-overlay::after {
 .adm-field select:focus, .adm-field input:focus { border-color: var(--brand-red); }
 .adm-field .hint { font-size: 10px; color: var(--text-muted); }
 .adm-check { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-secondary); margin-top: 22px; cursor: pointer; user-select: none; }
+th.sortable { cursor: pointer; user-select: none; white-space: nowrap; position: relative; padding-right: 20px !important; transition: color var(--transition-base); }
+th.sortable:hover { color: var(--text-primary) !important; }
+th.sortable::after { content: '⇅'; position: absolute; right: 4px; top: 50%; transform: translateY(-50%); font-size: 10px; opacity: 0.3; transition: opacity var(--transition-base); }
+th.sortable.sort-asc::after { content: '↑'; opacity: 1; color: var(--brand-red); }
+th.sortable.sort-desc::after { content: '↓'; opacity: 1; color: var(--brand-red); }
+th.sortable:hover::after { opacity: 0.7; }
+.data-table tbody tr { cursor: pointer; transition: background var(--transition-base); }
+.data-table tbody tr:hover { background: rgba(254,43,50,0.04); }
+.data-table tbody tr:nth-child(even) { background: rgba(255,255,255,0.015); }
+.data-table tbody tr:nth-child(even):hover { background: rgba(254,43,50,0.04); }
+.row-count { font-size: 11px; color: var(--text-tertiary); font-family: var(--font-mono); margin-left: auto; }
 .adm-check input { accent-color: var(--brand-red); width: 15px; height: 15px; cursor: pointer; }
 .adm-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 6px; position: sticky; bottom: 0; background: linear-gradient(transparent, var(--bg-primary) 30%); padding: 14px 0 4px; }
 .adm-status { font-size: 12px; color: var(--status-success); opacity: 0; transition: opacity 0.3s; font-family: var(--font-mono); }
@@ -419,7 +430,7 @@ body.scanlines-on .scan-overlay::after {
         <div class="filter-group"><span class="filter-label">From Date</span><input type="date" class="filter-input" id="deal-from"/></div>
         <div class="filter-group"><span class="filter-label">To Date</span><input type="date" class="filter-input" id="deal-to"/></div>
         <div class="filter-group"><span class="filter-label">Division</span><select class="filter-select" id="deal-division"><option value="">All</option></select></div>
-        <div class="filter-group"><span class="filter-label">Status</span><select class="filter-select" id="deal-status"><option value="">All</option></select></div>
+        <div class="filter-group"><span class="filter-label">Status</span><div class="multi-select-wrap" id="deal-status-wrap"><button class="multi-select-btn" id="deal-status-btn" type="button">All statuses <span class="ms-arrow">▾</span></button><div class="multi-select-dropdown" id="deal-status-dropdown"></div></div></div>
         <div class="filter-group"><span class="filter-label">Customer</span><select class="filter-select" id="deal-customer"><option value="">All</option></select></div>
         <div class="filter-group"><span class="filter-label">Vendor</span><select class="filter-select" id="deal-vendor"><option value="">All</option></select></div>
         <button class="filter-btn" id="deal-reset">Reset</button>
@@ -431,8 +442,20 @@ body.scanlines-on .scan-overlay::after {
         <div class="kpi-card" data-color="green"><div class="kpi-label">Avg GP per Deal</div><div class="kpi-value" id="dx-avg" style="font-size:22px">—</div><div class="kpi-meta">average</div></div>
       </div>
       <div class="table-wrap">
+        <div style="display:flex;align-items:center;margin-bottom:8px"><span style="font-size:11px;color:var(--text-tertiary);font-family:var(--font-mono)" id="deals-count-label"></span></div>
         <table class="data-table" id="deals-table">
-          <thead><tr><th>Deal</th><th>Date</th><th>Division</th><th>Customer</th><th>Vendor</th><th style="text-align:right">Qty (MT)</th><th style="text-align:right">Revenue</th><th style="text-align:right">Cost</th><th style="text-align:right">GP</th><th>Status</th></tr></thead>
+          <thead><tr>
+            <th class="sortable" data-col="deal" data-table="deals">Deal</th>
+            <th class="sortable" data-col="date" data-table="deals">Date</th>
+            <th>Division</th>
+            <th class="sortable" data-col="customer" data-table="deals">Customer</th>
+            <th class="sortable" data-col="vendor" data-table="deals">Vendor</th>
+            <th class="sortable" data-col="qty" data-table="deals" style="text-align:right">Qty (MT)</th>
+            <th class="sortable" data-col="revenue" data-table="deals" style="text-align:right">Revenue</th>
+            <th class="sortable" data-col="cost" data-table="deals" style="text-align:right">Cost</th>
+            <th class="sortable" data-col="gp" data-table="deals" style="text-align:right">GP</th>
+            <th>Status</th>
+          </tr></thead>
           <tbody id="deals-tbody"></tbody>
         </table>
       </div>
@@ -445,8 +468,17 @@ body.scanlines-on .scan-overlay::after {
         <div class="panel"><div class="panel-header"><div><div class="panel-title">Customer concentration</div><div class="panel-sub">Revenue share — who depends on whom</div></div></div><div class="chart-canvas large" id="chart-customer-pie"></div></div>
       </div>
       <div class="table-wrap">
+        <div style="display:flex;align-items:center;margin-bottom:8px"><span style="font-size:11px;color:var(--text-tertiary);font-family:var(--font-mono)" id="customers-count-label"></span></div>
         <table class="data-table" id="customers-table">
-          <thead><tr><th>Customer</th><th style="text-align:right">Deals</th><th style="text-align:right">Revenue</th><th style="text-align:right">GP</th><th style="text-align:right">Margin</th><th style="text-align:right">Avg GP/Deal</th><th>Health</th></tr></thead>
+          <thead><tr>
+            <th class="sortable" data-col="name" data-table="customers">Customer</th>
+            <th class="sortable" data-col="count" data-table="customers" style="text-align:right">Deals</th>
+            <th class="sortable" data-col="rev" data-table="customers" style="text-align:right">Revenue</th>
+            <th class="sortable" data-col="gp" data-table="customers" style="text-align:right">GP</th>
+            <th class="sortable" data-col="margin" data-table="customers" style="text-align:right">Margin</th>
+            <th class="sortable" data-col="avgGp" data-table="customers" style="text-align:right">Avg GP/Deal</th>
+            <th>Health</th>
+          </tr></thead>
           <tbody id="customers-tbody"></tbody>
         </table>
       </div>
@@ -459,8 +491,17 @@ body.scanlines-on .scan-overlay::after {
         <div class="panel"><div class="panel-header"><div><div class="panel-title">Vendor mix · currency</div><div class="panel-sub">FX exposure by source vendor</div></div></div><div class="chart-canvas large" id="chart-vendor-fx"></div></div>
       </div>
       <div class="table-wrap">
+        <div style="display:flex;align-items:center;margin-bottom:8px"><span style="font-size:11px;color:var(--text-tertiary);font-family:var(--font-mono)" id="vendors-count-label"></span></div>
         <table class="data-table" id="vendors-table">
-          <thead><tr><th>Vendor</th><th style="text-align:right">Deals</th><th style="text-align:right">Qty (MT)</th><th style="text-align:right">Total Cost</th><th style="text-align:right">Avg Cost/MT</th><th style="text-align:right">GP generated</th><th>Profile</th></tr></thead>
+          <thead><tr>
+            <th class="sortable" data-col="name" data-table="vendors">Vendor</th>
+            <th class="sortable" data-col="count" data-table="vendors" style="text-align:right">Deals</th>
+            <th class="sortable" data-col="qty" data-table="vendors" style="text-align:right">Qty (MT)</th>
+            <th class="sortable" data-col="cost" data-table="vendors" style="text-align:right">Total Cost</th>
+            <th class="sortable" data-col="costPerMT" data-table="vendors" style="text-align:right">Avg Cost/MT</th>
+            <th class="sortable" data-col="gp" data-table="vendors" style="text-align:right">GP generated</th>
+            <th>Profile</th>
+          </tr></thead>
           <tbody id="vendors-tbody"></tbody>
         </table>
       </div>
@@ -569,6 +610,7 @@ body.scanlines-on .scan-overlay::after {
           <div class="adm-grid">
             <div class="adm-field"><label>Auto-refresh (seconds)</label><input type="number" id="adm-refresh" min="10"/><span class="hint">How often live data re-pulls</span></div>
             <div class="adm-field"><label>Admin password</label><input type="password" id="adm-adminpass"/><span class="hint">Gate for this terminal</span></div>
+            <label class="adm-check"><input type="checkbox" id="adm-table-sort"/> Enable sortable &amp; filterable table headers (click column headers to sort)</label>
           </div>
         </div>
 
@@ -675,6 +717,7 @@ const DEFAULT_SETTINGS = {
   marginThresholds: { healthy: 5, caution: 2 },
   refreshSeconds: 60,
   adminPassword: 'admin2025',
+  tableSortEnabled: true,
   appearance: {
     accent: { red: '#FF2D2D', pink: '#FF45AC', amber: '#FFC533', green: '#00E5A0', info: '#4D9FFF', c6: '#9B6CFF', c7: '#FF8A3D', c8: '#3DE0E0' },
     chartSeries: ['#FF2D2D', '#FF45AC', '#FFC533', '#00E5A0', '#4D9FFF', '#9B6CFF', '#FF8A3D', '#3DE0E0'],
@@ -987,7 +1030,7 @@ async function launchApp() {
     await fetchData();
     $('loading-overlay').classList.add('hide');
     setTimeout(() => $('loading-overlay').style.display = 'none', 400);
-    setupNavigation(); setupFilters(); setupModal(); setupAdmin();
+    setupNavigation(); setupFilters(); setupModal(); setupAdmin(); setupTableSort();
     $('status-text').textContent = 'Live · ' + SETTINGS.refreshSeconds + 's';
     renderAllPages(); startAutoRefresh(); updateFooterTime();
     const hash = window.location.hash;
@@ -1080,14 +1123,25 @@ function populateFilterOptions() {
     sel.innerHTML = '<option value="">All</option>' + items.map(i => `<option value="${escapeHtml(i)}">${escapeHtml(i)}</option>`).join('');
     sel.value = current;
   };
-  fillSelect('deal-division', divisions); fillSelect('deal-status', statuses);
+  fillSelect('deal-division', divisions);
   fillSelect('deal-customer', customers); fillSelect('deal-vendor', vendors);
   fillSelect('bspl-division', divisions); fillSelect('bspl-customer', customers); fillSelect('bspl-vendor', vendors);
-  const dropdown = $('bspl-status-dropdown');
-  if (dropdown) {
-    const currentChecked = Array.from(dropdown.querySelectorAll('input:checked')).map(cb => cb.value);
-    dropdown.innerHTML = statuses.map(s => `<label class="ms-option${currentChecked.includes(s) ? ' checked' : ''}"><input type="checkbox" value="${escapeHtml(s)}"${currentChecked.includes(s) ? ' checked' : ''}/> ${escapeHtml(s)}</label>`).join('');
-    dropdown.querySelectorAll('input[type=checkbox]').forEach(cb => {
+  // Deal status multi-select
+  const dealDropdown = $('deal-status-dropdown');
+  if (dealDropdown) {
+    const currentChecked = Array.from(dealDropdown.querySelectorAll('input:checked')).map(cb => cb.value);
+    dealDropdown.innerHTML = statuses.map(s => `<label class="ms-option${currentChecked.includes(s) ? ' checked' : ''}"><input type="checkbox" value="${escapeHtml(s)}"${currentChecked.includes(s) ? ' checked' : ''}/> ${escapeHtml(s)}</label>`).join('');
+    dealDropdown.querySelectorAll('input[type=checkbox]').forEach(cb => {
+      cb.addEventListener('change', () => { cb.closest('.ms-option').classList.toggle('checked', cb.checked); updateDealStatusLabel(); renderDeals(); });
+    });
+    updateDealStatusLabel();
+  }
+  // BSPL status multi-select
+  const bsplDropdown = $('bspl-status-dropdown');
+  if (bsplDropdown) {
+    const currentChecked = Array.from(bsplDropdown.querySelectorAll('input:checked')).map(cb => cb.value);
+    bsplDropdown.innerHTML = statuses.map(s => `<label class="ms-option${currentChecked.includes(s) ? ' checked' : ''}"><input type="checkbox" value="${escapeHtml(s)}"${currentChecked.includes(s) ? ' checked' : ''}/> ${escapeHtml(s)}</label>`).join('');
+    bsplDropdown.querySelectorAll('input[type=checkbox]').forEach(cb => {
       cb.addEventListener('change', () => { cb.closest('.ms-option').classList.toggle('checked', cb.checked); updateBsplStatusLabel(); renderBSPL(); });
     });
     updateBsplStatusLabel();
@@ -1102,15 +1156,36 @@ function updateBsplStatusLabel() {
   else btn.innerHTML = `${checked.length} selected <span class="ms-arrow">▾</span>`;
   btn.classList.toggle('active', checked.length > 0);
 }
+function updateDealStatusLabel() {
+  const checked = getDealSelectedStatuses(); const btn = $('deal-status-btn'); if (!btn) return;
+  if (checked.length === 0) btn.innerHTML = 'All statuses <span class="ms-arrow">▾</span>';
+  else if (checked.length === 1) btn.innerHTML = `${escapeHtml(checked[0])} <span class="ms-arrow">▾</span>`;
+  else btn.innerHTML = `${checked.length} selected <span class="ms-arrow">▾</span>`;
+  btn.classList.toggle('active', checked.length > 0);
+}
+function getDealSelectedStatuses() {
+  const dd = $('deal-status-dropdown'); if (!dd) return [];
+  return Array.from(dd.querySelectorAll('input:checked')).map(cb => cb.value);
+}
 function setupFilters() {
-  ['deal-search', 'deal-division', 'deal-status', 'deal-customer', 'deal-vendor', 'deal-from', 'deal-to'].forEach(id => $(id).addEventListener('input', debounce(renderDeals, 200)));
-  $('deal-reset').addEventListener('click', () => { ['deal-search', 'deal-division', 'deal-status', 'deal-customer', 'deal-vendor', 'deal-from', 'deal-to'].forEach(id => $(id).value = ''); renderDeals(); });
+  ['deal-search', 'deal-division', 'deal-customer', 'deal-vendor', 'deal-from', 'deal-to'].forEach(id => $(id).addEventListener('input', debounce(renderDeals, 200)));
+  $('deal-reset').addEventListener('click', () => {
+    ['deal-search', 'deal-division', 'deal-customer', 'deal-vendor', 'deal-from', 'deal-to'].forEach(id => $(id).value = '');
+    document.querySelectorAll('#deal-status-dropdown input[type=checkbox]').forEach(cb => { cb.checked = false; cb.closest('.ms-option').classList.remove('checked'); });
+    updateDealStatusLabel(); renderDeals();
+  });
   ['bspl-from', 'bspl-to', 'bspl-division', 'bspl-customer', 'bspl-vendor'].forEach(id => $(id).addEventListener('input', debounce(renderBSPL, 200)));
   $('bspl-reset').addEventListener('click', () => {
     ['bspl-from', 'bspl-to', 'bspl-division', 'bspl-customer', 'bspl-vendor'].forEach(id => $(id).value = '');
     document.querySelectorAll('#bspl-status-dropdown input[type=checkbox]').forEach(cb => { cb.checked = false; cb.closest('.ms-option').classList.remove('checked'); });
     updateBsplStatusLabel(); renderBSPL();
   });
+  // Deal status dropdown toggle
+  const dealStatusBtn = $('deal-status-btn'), dealStatusDd = $('deal-status-dropdown');
+  if (dealStatusBtn && dealStatusDd) {
+    dealStatusBtn.addEventListener('click', e => { e.stopPropagation(); const open = dealStatusDd.classList.toggle('open'); dealStatusBtn.classList.toggle('open', open); });
+    document.addEventListener('click', e => { if ($('deal-status-wrap') && !$('deal-status-wrap').contains(e.target)) { dealStatusDd.classList.remove('open'); dealStatusBtn.classList.remove('open'); } });
+  }
   const statusBtn = $('bspl-status-btn'), statusDropdown = $('bspl-status-dropdown');
   if (statusBtn && statusDropdown) {
     statusBtn.addEventListener('click', e => { e.stopPropagation(); const open = statusDropdown.classList.toggle('open'); statusBtn.classList.toggle('open', open); });
@@ -1198,12 +1273,13 @@ function renderStatusChart(byStatus) {
 /* ─── DEALS ─── */
 function getFilteredDeals() {
   const q = ($('deal-search').value || '').toLowerCase().trim();
-  const div = $('deal-division').value, sts = $('deal-status').value, cust = $('deal-customer').value, vnd = $('deal-vendor').value;
+  const div = $('deal-division').value, cust = $('deal-customer').value, vnd = $('deal-vendor').value;
+  const selectedStatuses = getDealSelectedStatuses();
   const from = $('deal-from').value ? parseDate($('deal-from').value) : null;
   const to = $('deal-to').value ? parseDate($('deal-to').value) : null;
   return STATE.data.dc.filter(r => {
     if (div && rawVal(r, 'division') !== div) return false;
-    if (sts && rawVal(r, 'status') !== sts) return false;
+    if (selectedStatuses.length > 0 && !selectedStatuses.includes(rawVal(r, 'status'))) return false;
     if (cust && rawVal(r, 'customer') !== cust) return false;
     if (vnd && rawVal(r, 'vendor') !== vnd) return false;
     const d = parseDate(rawVal(r, 'invoiceDate'));
@@ -1213,6 +1289,66 @@ function getFilteredDeals() {
     return true;
   });
 }
+
+/* ─── TABLE SORT ENGINE ─── */
+const TABLE_SORT = { deals: { col: 'date', dir: 'desc' }, customers: { col: 'gp', dir: 'desc' }, vendors: { col: 'cost', dir: 'desc' } };
+function setupTableSort() {
+  document.addEventListener('click', e => {
+    if (!SETTINGS.tableSortEnabled) return;
+    const th = e.target.closest('th.sortable'); if (!th) return;
+    const tbl = th.dataset.table, col = th.dataset.col; if (!tbl || !col) return;
+    const s = TABLE_SORT[tbl];
+    if (s.col === col) s.dir = s.dir === 'asc' ? 'desc' : 'asc';
+    else { s.col = col; s.dir = col === 'name' ? 'asc' : 'desc'; }
+    updateSortHeaders(tbl);
+    if (tbl === 'deals') renderDeals();
+    if (tbl === 'customers') renderCustomers();
+    if (tbl === 'vendors') renderVendors();
+  });
+}
+function updateSortHeaders(tbl) {
+  const s = TABLE_SORT[tbl];
+  document.querySelectorAll(`th.sortable[data-table="${tbl}"]`).forEach(th => {
+    th.classList.remove('sort-asc', 'sort-desc');
+    if (th.dataset.col === s.col) th.classList.add(s.dir === 'asc' ? 'sort-asc' : 'sort-desc');
+  });
+}
+function applySortHeaders() {
+  ['deals', 'customers', 'vendors'].forEach(tbl => {
+    const enabled = SETTINGS.tableSortEnabled;
+    document.querySelectorAll(`th[data-table="${tbl}"]`).forEach(th => {
+      th.classList.toggle('sortable', enabled);
+      if (!enabled) th.classList.remove('sort-asc', 'sort-desc');
+    });
+    if (enabled) updateSortHeaders(tbl);
+  });
+}
+function sortRows(rows, tbl) {
+  if (!SETTINGS.tableSortEnabled) return rows;
+  const { col, dir } = TABLE_SORT[tbl]; const mul = dir === 'asc' ? 1 : -1;
+  return [...rows].sort((a, b) => {
+    let av, bv;
+    if (tbl === 'deals') {
+      const getV = (r) => {
+        if (col === 'deal') return rawVal(r, 'deal') || '';
+        if (col === 'date') return parseDate(rawVal(r, 'invoiceDate'))?.getTime() || 0;
+        if (col === 'customer') return rawVal(r, 'customer') || '';
+        if (col === 'vendor') return rawVal(r, 'vendor') || '';
+        if (col === 'qty') return num(r, 'quantity');
+        if (col === 'revenue') return num(r, 'revenue');
+        if (col === 'cost') return num(r, 'cost');
+        if (col === 'gp') return dealGP(r);
+        return 0;
+      };
+      av = getV(a); bv = getV(b);
+    } else {
+      av = a[col] ?? 0; bv = b[col] ?? 0;
+    }
+    if (typeof av === 'string') return mul * av.localeCompare(bv);
+    return mul * (av - bv);
+  });
+}
+
 function renderDeals() {
   const filtered = getFilteredDeals(); const tbody = $('deals-tbody');
   const rev = filtered.reduce((s, r) => s + num(r, 'revenue'), 0);
@@ -1220,8 +1356,10 @@ function renderDeals() {
   $('dx-count').textContent = fmtNum(filtered.length);
   $('dx-rev').textContent = money(rev); $('dx-gp').textContent = money(gp);
   $('dx-avg').textContent = money(filtered.length ? gp / filtered.length : 0);
+  const lbl = $('deals-count-label'); if (lbl) lbl.textContent = `${filtered.length} of ${STATE.data.dc.length} deals`;
   if (!filtered.length) { tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;padding:40px;color:var(--text-tertiary)">No deals match these filters.</td></tr>'; return; }
-  const sorted = [...filtered].sort((a, b) => (parseDate(rawVal(b, 'invoiceDate'))?.getTime() || 0) - (parseDate(rawVal(a, 'invoiceDate'))?.getTime() || 0));
+  const sorted = sortRows(filtered, 'deals');
+  applySortHeaders();
   tbody.innerHTML = sorted.map(r => {
     const gpVal = dealGP(r), gpClass = gpVal > 0 ? 'pos' : gpVal < 0 ? 'neg' : '';
     const status = String(rawVal(r, 'status') || '').toUpperCase().replace(/\s+/g, '-').toLowerCase();
@@ -1284,15 +1422,20 @@ function renderCustomers() {
     if (!byCust[c]) byCust[c] = { rev: 0, gp: 0, count: 0 };
     byCust[c].rev += num(d, 'revenue'); byCust[c].gp += dealGP(d); byCust[c].count += 1;
   });
-  const sorted = Object.entries(byCust).map(([k, v]) => ({ name: k, ...v, margin: v.rev > 0 ? v.gp / v.rev : 0, avgGp: v.gp / v.count })).sort((a, b) => b.gp - a.gp);
-  renderCustomerGpChart(sorted); renderCustomerPieChart(sorted);
+  const allCustomers = Object.entries(byCust).map(([k, v]) => ({ name: k, ...v, margin: v.rev > 0 ? v.gp / v.rev : 0, avgGp: v.gp / v.count }));
+  const byGp = [...allCustomers].sort((a, b) => b.gp - a.gp);
+  const byRev = [...allCustomers].sort((a, b) => b.rev - a.rev);
+  renderCustomerGpChart(byGp); renderCustomerPieChart(byRev);
   const hi = (SETTINGS.marginThresholds.healthy || 5) / 100, lo = (SETTINGS.marginThresholds.caution || 2) / 100;
-  $('customers-tbody').innerHTML = sorted.map(c => {
+  const tableRows = sortRows(allCustomers, 'customers');
+  const lbl = $('customers-count-label'); if (lbl) lbl.textContent = `${allCustomers.length} customers · completed deals`;
+  applySortHeaders();
+  $('customers-tbody').innerHTML = tableRows.map(c => {
     const healthClass = c.margin > hi ? 'pos' : c.margin > lo ? 'warn' : 'neg';
     const healthLabel = c.margin > hi ? 'Strong' : c.margin > lo ? 'Watch' : c.margin > 0 ? 'Weak' : 'Loss-making';
     const badgeClass = c.margin > hi ? 'completed' : c.margin > lo ? 'live' : 'incomplete';
     return `<tr>
-      <td style="color:var(--text-primary);font-weight:500">${escapeHtml(c.name)}</td>
+      <td style="color:var(--text-primary);font-weight:500" title="${escapeHtml(c.name)}">${escapeHtml(c.name)}</td>
       <td class="num">${c.count}</td>
       <td class="num">${fmtAED(c.rev)}</td>
       <td class="num ${c.gp >= 0 ? 'pos' : 'neg'}">${fmtAED(c.gp)}</td>
@@ -1312,15 +1455,17 @@ function renderCustomerGpChart(sorted) {
     series: [{ type: 'bar', data: top.map(c => Math.round(c.gp)).reverse(), itemStyle: { color: (p) => p.value < 0 ? PAL.red : { type: 'linear', x: 0, y: 0, x2: 1, y2: 0, colorStops: [{ offset: 0, color: rgba(PAL.pink,0.3) }, { offset: 1, color: PAL.pink }] }, borderRadius: [0, 4, 4, 0] }, barWidth: '60%', animationDuration: 1000 }]
   });
 }
-function renderCustomerPieChart(sorted) {
-  const t = getChartTheme(); const top = sorted.slice(0, 8);
-  const others = sorted.slice(8).reduce((s, c) => s + c.rev, 0);
+function renderCustomerPieChart(byRev) {
+  const t = getChartTheme();
+  const top = byRev.slice(0, 10);
+  const othersArr = byRev.slice(10);
+  const othersRev = othersArr.reduce((s, c) => s + c.rev, 0);
   const colors = PAL.series;
-  const data = top.map((c, i) => ({ name: c.name.length > 20 ? c.name.slice(0, 20) + '...' : c.name, value: Math.round(c.rev), itemStyle: { color: colors[i] } }));
-  if (others > 0) data.push({ name: 'Others', value: Math.round(others), itemStyle: { color: 'rgba(255,255,255,0.15)' } });
+  const data = top.map((c, i) => ({ name: c.name.length > 22 ? c.name.slice(0, 22) + '…' : c.name, fullName: c.name, value: Math.round(c.rev), itemStyle: { color: colors[i % colors.length] } }));
+  if (othersRev > 0) data.push({ name: `Others (${othersArr.length})`, fullName: `${othersArr.length} other customers`, value: Math.round(othersRev), itemStyle: { color: 'rgba(255,255,255,0.12)' } });
   initChart('chart-customer-pie', {
     backgroundColor: 'transparent',
-    tooltip: { trigger: 'item', backgroundColor: t.tooltipBg, borderColor: t.tooltipBorder, borderWidth: 1, textStyle: { color: t.tooltipText }, formatter: (p) => `<div style="font-weight:600">${p.name}</div><div style="font-family:JetBrains Mono">${money(p.value)} · ${p.percent}%</div>` },
+    tooltip: { trigger: 'item', backgroundColor: t.tooltipBg, borderColor: t.tooltipBorder, borderWidth: 1, textStyle: { color: t.tooltipText }, formatter: (p) => `<div style="font-weight:600;margin-bottom:4px">${p.data.fullName || p.name}</div><div style="font-family:JetBrains Mono">${money(p.value)} · ${p.percent}%</div>` },
     series: [{ type: 'pie', radius: ['40%', '70%'], center: ['50%', '50%'], itemStyle: { borderColor: t.tooltipBg, borderWidth: 2 }, label: { color: t.textColor, fontSize: 10, formatter: '{b}\n{d}%' }, data, animationDuration: 1000 }]
   });
 }
@@ -1335,14 +1480,18 @@ function renderVendors() {
     byVnd[v].cost += num(d, 'cost'); byVnd[v].qty += num(d, 'quantity'); byVnd[v].gp += dealGP(d); byVnd[v].count += 1;
     if (rawVal(d, 'purchaseCurrency')) byVnd[v].currencies.add(rawVal(d, 'purchaseCurrency'));
   });
-  const sorted = Object.entries(byVnd).map(([k, v]) => ({ name: k, ...v, costPerMT: v.qty > 0 ? v.cost / v.qty : 0, currencies: [...v.currencies] })).sort((a, b) => b.cost - a.cost);
-  renderVendorSpendChart(sorted); renderVendorFxChart(completed);
-  $('vendors-tbody').innerHTML = sorted.map(v => {
+  const allVendors = Object.entries(byVnd).map(([k, v]) => ({ name: k, ...v, costPerMT: v.qty > 0 ? v.cost / v.qty : 0, currencies: [...v.currencies] }));
+  const byCost = [...allVendors].sort((a, b) => b.cost - a.cost);
+  renderVendorSpendChart(byCost); renderVendorFxChart(completed);
+  const tableRows = sortRows(allVendors, 'vendors');
+  const lbl = $('vendors-count-label'); if (lbl) lbl.textContent = `${allVendors.length} vendors · completed deals`;
+  applySortHeaders();
+  $('vendors-tbody').innerHTML = tableRows.map(v => {
     const avg = v.gp / v.count;
     const profile = avg > 5000 ? 'High value' : avg > 1000 ? 'Steady' : avg > 0 ? 'Low margin' : 'Loss-making';
     const cls = avg > 5000 ? 'completed' : avg > 1000 ? 'partial' : avg > 0 ? 'live' : 'incomplete';
     return `<tr>
-      <td style="color:var(--text-primary);font-weight:500">${escapeHtml(v.name)}</td>
+      <td style="color:var(--text-primary);font-weight:500" title="${escapeHtml(v.name)}">${escapeHtml(v.name)}</td>
       <td class="num">${v.count}</td>
       <td class="num">${fmtNum(v.qty, 1)}</td>
       <td class="num">${fmtAED(v.cost)}</td>
@@ -1621,6 +1770,7 @@ function renderAdmin() {
   $('adm-margin-lo').value = SETTINGS.marginThresholds.caution;
   $('adm-refresh').value = SETTINGS.refreshSeconds;
   $('adm-adminpass').value = SETTINGS.adminPassword;
+  $('adm-table-sort').checked = SETTINGS.tableSortEnabled !== false;
   renderAppearancePanel();
 }
 const ACCENT_KEYS = [['red', 'Red / primary'], ['pink', 'Pink'], ['amber', 'Amber'], ['green', 'Green / success'], ['info', 'Info / blue'], ['c6', 'Extra 6'], ['c7', 'Extra 7'], ['c8', 'Extra 8']];
@@ -1689,6 +1839,8 @@ function saveAdmin() {
   SETTINGS.marginThresholds.caution = parseFloat($('adm-margin-lo').value) || 2;
   SETTINGS.refreshSeconds = Math.max(10, parseInt($('adm-refresh').value) || 60);
   SETTINGS.adminPassword = $('adm-adminpass').value || SETTINGS.adminPassword;
+  SETTINGS.tableSortEnabled = $('adm-table-sort').checked;
+  applySortHeaders();
   commitAppearance();
   saveSettings();
   $('status-text').textContent = 'Live · ' + SETTINGS.refreshSeconds + 's';
