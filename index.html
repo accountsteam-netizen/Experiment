@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@500;600;700;800&family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://accounts.google.com; connect-src https://sheets.googleapis.com https://oauth2.googleapis.com https://accounts.google.com https://www.googleapis.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:;"/>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://accounts.google.com; connect-src https://sheets.googleapis.com https://oauth2.googleapis.com https://accounts.google.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:;"/>
 <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js" crossorigin="anonymous"></script>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 
@@ -202,8 +202,8 @@ body.scanlines-on .scan-overlay::after {
 .chart-canvas { width: 100%; height: 280px; }
 .chart-canvas.small { height: 200px; }
 .chart-canvas.large { height: 360px; }
-.data-table { width: 100%; border-collapse: collapse; font-size: 12px; }
-.data-table th { text-align: left; font-size: 10px; font-weight: 600; color: var(--text-tertiary); letter-spacing: 0.06em; text-transform: uppercase; padding: 10px 12px; border-bottom: 1px solid var(--border-subtle); background: var(--bg-elevated); position: sticky; top: 0; }
+.data-table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 12px; }
+.data-table th { text-align: left; font-size: 10px; font-weight: 600; color: var(--text-tertiary); letter-spacing: 0.06em; text-transform: uppercase; padding: 10px 12px; border-bottom: 1px solid var(--border-subtle); background: var(--bg-elevated); position: sticky; top: 0; z-index: 2; }
 .data-table td { padding: 10px 12px; border-bottom: 1px solid var(--border-subtle); color: var(--text-secondary); }
 .data-table tr { transition: background var(--transition-base); cursor: pointer; }
 .data-table tr:hover td { background: var(--bg-hover); color: var(--text-primary); }
@@ -212,7 +212,8 @@ body.scanlines-on .scan-overlay::after {
 .data-table .num.pos { color: var(--status-success); }
 .data-table .num.neg { color: var(--brand-red); }
 .data-table .num.warn { color: var(--brand-amber); }
-.table-wrap { background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); overflow: hidden; max-height: 600px; overflow-y: auto; }
+.table-wrap { background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); overflow: clip; max-height: 600px; }
+.table-scroll { overflow-x: auto; overflow-y: auto; max-height: 600px; }
 .badge { display: inline-block; font-size: 10px; font-weight: 600; padding: 3px 8px; border-radius: 4px; letter-spacing: 0.04em; font-family: var(--font-mono); }
 .badge.completed { background: rgba(0,212,170,0.12); color: var(--status-success); }
 .badge.live { background: rgba(255,197,51,0.12); color: var(--brand-amber); }
@@ -442,8 +443,8 @@ th.sortable:hover::after { opacity: 0.7; }
         <div class="kpi-card" data-color="amber"><div class="kpi-label">Filtered GP</div><div class="kpi-value" id="dx-gp" style="font-size:22px">—</div><div class="kpi-meta">total</div></div>
         <div class="kpi-card" data-color="green"><div class="kpi-label">Avg GP per Deal</div><div class="kpi-value" id="dx-avg" style="font-size:22px">—</div><div class="kpi-meta">average</div></div>
       </div>
-      <div class="table-wrap">
-        <div style="display:flex;align-items:center;margin-bottom:8px"><span style="font-size:11px;color:var(--text-tertiary);font-family:var(--font-mono)" id="deals-count-label"></span></div>
+      <div style="display:flex;align-items:center;margin-bottom:8px"><span style="font-size:11px;color:var(--text-tertiary);font-family:var(--font-mono)" id="deals-count-label"></span></div>
+      <div class="table-wrap"><div class="table-scroll">
         <table class="data-table" id="deals-table">
           <thead><tr>
             <th class="sortable" data-col="deal" data-table="deals">Deal</th>
@@ -459,7 +460,7 @@ th.sortable:hover::after { opacity: 0.7; }
           </tr></thead>
           <tbody id="deals-tbody"></tbody>
         </table>
-      </div>
+      </div></div>
     </div>
 
     <div class="page" id="page-customers">
@@ -468,8 +469,8 @@ th.sortable:hover::after { opacity: 0.7; }
         <div class="panel"><div class="panel-header"><div><div class="panel-title">GP by Customer</div><div class="panel-sub">Sorted high to low · click bar for details</div></div></div><div class="chart-canvas large" id="chart-customer-gp"></div></div>
         <div class="panel"><div class="panel-header"><div><div class="panel-title">Customer concentration</div><div class="panel-sub">Revenue share — who depends on whom</div></div></div><div class="chart-canvas large" id="chart-customer-pie"></div></div>
       </div>
-      <div class="table-wrap">
-        <div style="display:flex;align-items:center;margin-bottom:8px"><span style="font-size:11px;color:var(--text-tertiary);font-family:var(--font-mono)" id="customers-count-label"></span></div>
+      <div style="display:flex;align-items:center;margin-bottom:8px"><span style="font-size:11px;color:var(--text-tertiary);font-family:var(--font-mono)" id="customers-count-label"></span></div>
+      <div class="table-wrap"><div class="table-scroll">
         <table class="data-table" id="customers-table">
           <thead><tr>
             <th class="sortable" data-col="name" data-table="customers">Customer</th>
@@ -482,7 +483,7 @@ th.sortable:hover::after { opacity: 0.7; }
           </tr></thead>
           <tbody id="customers-tbody"></tbody>
         </table>
-      </div>
+      </div></div>
     </div>
 
     <div class="page" id="page-vendors">
@@ -491,8 +492,8 @@ th.sortable:hover::after { opacity: 0.7; }
         <div class="panel"><div class="panel-header"><div><div class="panel-title">Spend by vendor</div><div class="panel-sub">Top vendors by total purchase value</div></div></div><div class="chart-canvas large" id="chart-vendor-spend"></div></div>
         <div class="panel"><div class="panel-header"><div><div class="panel-title">Vendor mix · currency</div><div class="panel-sub">FX exposure by source vendor</div></div></div><div class="chart-canvas large" id="chart-vendor-fx"></div></div>
       </div>
-      <div class="table-wrap">
-        <div style="display:flex;align-items:center;margin-bottom:8px"><span style="font-size:11px;color:var(--text-tertiary);font-family:var(--font-mono)" id="vendors-count-label"></span></div>
+      <div style="display:flex;align-items:center;margin-bottom:8px"><span style="font-size:11px;color:var(--text-tertiary);font-family:var(--font-mono)" id="vendors-count-label"></span></div>
+      <div class="table-wrap"><div class="table-scroll">
         <table class="data-table" id="vendors-table">
           <thead><tr>
             <th class="sortable" data-col="name" data-table="vendors">Vendor</th>
@@ -505,7 +506,7 @@ th.sortable:hover::after { opacity: 0.7; }
           </tr></thead>
           <tbody id="vendors-tbody"></tbody>
         </table>
-      </div>
+      </div></div>
     </div>
     <div class="page" id="page-bspl">
       <div class="page-header"><div class="page-eyebrow">// 05 — Financials</div><h1 class="page-title">Balance Sheet & P&L</h1><p class="page-desc">Everything responds to your filters · live, the moment you change them.</p></div>
@@ -623,8 +624,7 @@ th.sortable:hover::after { opacity: 0.7; }
             <div class="adm-field"><label>New admin password</label><input type="password" id="adm-new-admin-pw" placeholder="Leave blank to keep current"/><span class="hint">Gate for this terminal</span></div>
             <div class="adm-field"><label>Max login attempts before lockout</label><input type="number" id="adm-max-attempts" min="2" max="20" step="1"/></div>
             <div class="adm-field"><label>Lockout duration (minutes)</label><input type="number" id="adm-lockout-mins" min="1" max="60" step="1"/></div>
-            <div class="adm-field" style="grid-column:1/-1"><label>Approved email addresses (one per line — leave empty to allow any Google account)</label><textarea id="adm-email-allowlist" rows="4" style="width:100%;background:var(--bg-elevated);border:1px solid var(--border-default);border-radius:var(--radius-sm);padding:8px 10px;font-size:12px;color:var(--text-primary);font-family:var(--font-mono);resize:vertical;outline:none" placeholder="ceo@company.com&#10;cfo@company.com"></textarea><span class="hint">Email check happens after Google sign-in. Anyone NOT on this list is rejected, even with a valid Google account.</span></div>
-            <div class="adm-field" style="grid-column:1/-1"><label>Approved domains (one per line — anyone @domain passes, regardless of email list)</label><textarea id="adm-domain-allowlist" rows="2" style="width:100%;background:var(--bg-elevated);border:1px solid var(--border-default);border-radius:var(--radius-sm);padding:8px 10px;font-size:12px;color:var(--text-primary);font-family:var(--font-mono);resize:vertical;outline:none" placeholder="doubleclicktrading.com"></textarea><span class="hint">Use this OR the email list, not both together — domain is broader.</span></div>
+
           </div>
           <div style="margin-top:14px;padding:12px 14px;background:rgba(255,197,51,0.06);border:1px solid rgba(255,197,51,0.15);border-radius:var(--radius-md);font-size:11px;color:var(--text-secondary);line-height:1.6">
             <strong style="color:var(--brand-amber)">Security note:</strong> SHA-256 hashing prevents plaintext exposure in source &amp; storage. However, since this is a static app served over HTTPS (GitHub Pages), the file itself is the trust boundary — anyone who can serve a modified version of this file can bypass the gate. The real data protection is Google OAuth: the password gate is a UX lock, not a data lock. Your Google Sheet remains protected by Google's auth regardless.
@@ -744,8 +744,7 @@ const DEFAULT_SETTINGS = {
   adminPasswordHash: 'f0d69d50df9d46dbb367d8ab8265d051e4e15cd15277230b5c8cd0b0aba18fca',
   loginPasswordHash: 'b98704d12c1e2bc63833ba0bec1df393c26ddc6b912e6a2800ad1828810b8442',
   tableSortEnabled: true,
-  emailAllowlist: [],       // empty = allow any authenticated Google user; add emails to restrict
-  domainAllowlist: [],      // e.g. ['doubleclicktrading.com'] — any email @domain passes
+
   charts: {
     monthly:          { type: 'bar',     metric: 'both',     scope: 'completed', topN: 0,  sortBy: 'date',  showOthers: false },
     division:         { type: 'donut',   metric: 'gp',       scope: 'completed', topN: 0,  sortBy: 'value', showOthers: false },
@@ -1098,46 +1097,14 @@ function initGoogleAuth() {
     client_id: CONFIG.CLIENT_ID, scope: CONFIG.SCOPES,
     callback: async (response) => {
       if (response.error) { alert('Google sign-in failed: ' + response.error); return; }
-      // Verify the signed-in email against the allowlist before proceeding
-      try {
-        const info = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
-          headers: { Authorization: 'Bearer ' + response.access_token }
-        }).then(r => r.json());
-        if (!isEmailAllowed(info.email)) {
-          showEmailDenied(info.email); return;
-        }
-        sessionStorage.setItem('dc-user-email', info.email);
-        sessionStorage.setItem('dc-user-name', info.name || info.email);
-      } catch(e) {
-        // If userinfo fails, still proceed (token is valid for Sheets)
-        console.warn('Could not verify email:', e);
-      }
       STATE.token = response.access_token;
       sessionStorage.setItem('dc-token', response.access_token);
       await launchApp();
     }
   });
 }
-function isEmailAllowed(email) {
-  if (!email) return true; // can't verify → let through (Sheet auth still applies)
-  const emails = (SETTINGS.emailAllowlist || []).map(e => e.trim().toLowerCase()).filter(Boolean);
-  const domains = (SETTINGS.domainAllowlist || []).map(d => d.trim().toLowerCase()).filter(Boolean);
-  if (emails.length === 0 && domains.length === 0) return true; // no restriction set
-  const lc = email.toLowerCase();
-  if (emails.includes(lc)) return true;
-  const domain = lc.split('@')[1] || '';
-  return domains.includes(domain);
-}
-function showEmailDenied(email) {
-  const errEl = $('login-error');
-  errEl.textContent = `Access denied: ${email} is not on the approved list. Contact your administrator.`;
-  errEl.classList.add('show');
-  // Reset Google button so they can try another account
-  const g = $('google-btn');
-  g.innerHTML = GOOGLE_SVG;
-  g.disabled = false; g.style.opacity = '1'; g.style.cursor = 'pointer';
-  sessionStorage.removeItem('dc-pwd-ok');
-}
+
+
 window.addEventListener('load', () => {
   initGoogleAuth();
   const pwdOk = sessionStorage.getItem('dc-pwd-ok');
@@ -1266,12 +1233,7 @@ function startAutoRefresh() {
     try { await fetchData(); renderAllPages(); updateFooterTime(); } catch (e) { console.warn('Refresh failed:', e); }
   }, (SETTINGS.refreshSeconds || 60) * 1000);
 }
-function updateFooterTime() {
-  const email = sessionStorage.getItem('dc-user-email');
-  const name  = sessionStorage.getItem('dc-user-name');
-  const user  = name ? `${name}${email ? ' · ' + email : ''}` : (email || '');
-  $('footer-time').textContent = 'Last refresh: ' + new Date().toLocaleTimeString('en-GB') + (user ? '  ·  ' + user : '');
-}
+function updateFooterTime() { $('footer-time').textContent = 'Last refresh: ' + new Date().toLocaleTimeString('en-GB'); }
 
 /* ─── FILTER POPULATION ─── */
 function populateFilterOptions() {
@@ -1826,6 +1788,10 @@ function renderBsplDivisionPnl() {
   renderEntityDivisionBreakdown(base, divisions, divColors, 'customer', 'Customer', 'bspl-customer-div-breakdown');
   renderEntityDivisionBreakdown(base, divisions, divColors, 'vendor', 'Vendor', 'bspl-vendor-div-breakdown');
 }
+const ENTITY_SORT = {
+  'bspl-customer-div-breakdown': { col: 'name', dir: 'asc' },
+  'bspl-vendor-div-breakdown':   { col: 'name', dir: 'asc' }
+};
 function renderEntityDivisionBreakdown(base, divisions, divColors, entityKey, entityLabel, containerId) {
   const entities = [...new Set(base.map(r => rawVal(r, entityKey)).filter(Boolean))].sort();
   if (!entities.length) { $(containerId).innerHTML = ''; return; }
@@ -1836,13 +1802,50 @@ function renderEntityDivisionBreakdown(base, divisions, divColors, entityKey, en
     if (!e || !d || !byEntity[e] || !byEntity[e][d]) return;
     byEntity[e][d].rev += num(r, 'revenue'); byEntity[e][d].gp += dealGP(r); byEntity[e][d].deals += 1;
   });
-  const divHeaders = divisions.map(d => `<th style="color:${divColors[d] || 'var(--text-primary)'}" colspan="2">${escapeHtml(d)}</th>`).join('');
+  // Build row objects for sorting
+  const rows = entities.map(e => ({ name: e, divData: byEntity[e], totalGp: divisions.reduce((s,d)=>s+byEntity[e][d].gp,0), totalRev: divisions.reduce((s,d)=>s+byEntity[e][d].rev,0) }));
+  // Apply sort
+  const s = ENTITY_SORT[containerId] || { col: 'name', dir: 'asc' };
+  rows.sort((a, b) => {
+    let av, bv;
+    if (s.col === 'name') { av = a.name; bv = b.name; }
+    else if (s.col === 'totalGp') { av = a.totalGp; bv = b.totalGp; }
+    else { av = a.divData[s.col]?.gp ?? 0; bv = b.divData[s.col]?.gp ?? 0; }
+    const mul = s.dir === 'asc' ? 1 : -1;
+    return typeof av === 'string' ? mul * av.localeCompare(bv) : mul * (av - bv);
+  });
+  const sortArrow = (col) => {
+    if (!SETTINGS.tableSortEnabled) return '';
+    if (s.col !== col) return '<span style="opacity:0.3;font-size:9px;margin-left:3px">⇅</span>';
+    return `<span style="color:var(--brand-red);font-size:9px;margin-left:3px">${s.dir==='asc'?'↑':'↓'}</span>`;
+  };
+  const thStyle = SETTINGS.tableSortEnabled ? 'cursor:pointer;user-select:none;' : '';
+  const divHeaders = divisions.map(d =>
+    `<th colspan="2" style="color:${divColors[d]||'var(--text-primary)'};${thStyle}" data-sort-container="${containerId}" data-sort-col="${d}">${escapeHtml(d)}${sortArrow(d)}</th>`
+  ).join('');
   const divSubHeaders = divisions.map(() => `<th>Revenue</th><th>GP</th>`).join('');
-  const rows = entities.map(e => {
-    const cells = divisions.map(d => { const v = byEntity[e][d]; return `<td>${v.deals > 0 ? fmtAED(v.rev) : '—'}</td><td class="${v.gp >= 0 ? 'pos' : 'neg'}">${v.deals > 0 ? fmtAED(v.gp) : '—'}</td>`; }).join('');
-    return `<tr><td>${escapeHtml(e)}</td>${cells}</tr>`;
+  const totalGpTh = `<th style="${thStyle}" data-sort-container="${containerId}" data-sort-col="totalGp">Total GP${sortArrow('totalGp')}</th>`;
+  const nameTh = `<th style="text-align:left;${thStyle}" data-sort-container="${containerId}" data-sort-col="name">${entityLabel}${sortArrow('name')}</th>`;
+  const rowHtml = rows.map(r => {
+    const cells = divisions.map(d => {
+      const v = r.divData[d];
+      return `<td>${v.deals>0?fmtAED(v.rev):'—'}</td><td class="${v.gp>=0?'pos':'neg'}">${v.deals>0?fmtAED(v.gp):'—'}</td>`;
+    }).join('');
+    return `<tr><td>${escapeHtml(r.name)}</td>${cells}<td class="${r.totalGp>=0?'pos':'neg'}" style="font-weight:600">${fmtAED(r.totalGp)}</td></tr>`;
   }).join('');
-  $(containerId).innerHTML = `<div style="overflow-x:auto"><table class="div-pnl-table"><thead><tr><th style="text-align:left">${entityLabel}</th>${divHeaders}</tr><tr style="background:var(--bg-elevated)"><th></th>${divSubHeaders}</tr></thead><tbody>${rows}</tbody></table></div>`;
+  $(containerId).innerHTML = `<div style="overflow-x:auto;max-height:400px;overflow-y:auto"><table class="div-pnl-table"><thead><tr>${nameTh}${divHeaders}${totalGpTh}</tr><tr style="background:var(--bg-elevated)"><th></th>${divSubHeaders}<th>Total</th></tr></thead><tbody>${rowHtml}</tbody></table></div>`;
+  // Wire sort click on headers
+  if (SETTINGS.tableSortEnabled) {
+    $(containerId).querySelectorAll('[data-sort-container]').forEach(th => {
+      th.addEventListener('click', () => {
+        const cid = th.dataset.sortContainer, col = th.dataset.sortCol;
+        if (!ENTITY_SORT[cid]) ENTITY_SORT[cid] = { col, dir: 'desc' };
+        else if (ENTITY_SORT[cid].col === col) ENTITY_SORT[cid].dir = ENTITY_SORT[cid].dir === 'asc' ? 'desc' : 'asc';
+        else { ENTITY_SORT[cid].col = col; ENTITY_SORT[cid].dir = col === 'name' ? 'asc' : 'desc'; }
+        renderBsplDivisionPnl();
+      });
+    });
+  }
 }
 /* ─── INVESTOR ─── */
 function renderInvestor() {
@@ -1960,8 +1963,7 @@ function renderAdmin() {
   $('adm-new-login-pw').value = ''; $('adm-new-admin-pw').value = '';
   $('adm-max-attempts').value = CONFIG.MAX_LOGIN_ATTEMPTS;
   $('adm-lockout-mins').value = CONFIG.LOCKOUT_MINUTES;
-  $('adm-email-allowlist').value = (SETTINGS.emailAllowlist || []).join('\n');
-  $('adm-domain-allowlist').value = (SETTINGS.domainAllowlist || []).join('\n');
+
   // Chart config section
   renderChartConfigPanel();
   renderAppearancePanel();
@@ -2157,8 +2159,7 @@ function saveAdmin() {
   const maxAtt = parseInt($('adm-max-attempts').value) || 5;
   const lockMins = parseInt($('adm-lockout-mins').value) || 15;
   CONFIG.MAX_LOGIN_ATTEMPTS = maxAtt; CONFIG.LOCKOUT_MINUTES = lockMins;
-  SETTINGS.emailAllowlist = ($('adm-email-allowlist').value || '').split('\n').map(e => e.trim().toLowerCase()).filter(Boolean);
-  SETTINGS.domainAllowlist = ($('adm-domain-allowlist').value || '').split('\n').map(d => d.trim().toLowerCase()).filter(Boolean);
+
   const hashUpdates = [];
   if (newLoginPw) hashUpdates.push(sha256hex(newLoginPw).then(h => { SETTINGS.loginPasswordHash = h; }));
   if (newAdminPw) hashUpdates.push(sha256hex(newAdminPw).then(h => { SETTINGS.adminPasswordHash = h; sessionStorage.removeItem('dc-admin-ok'); }));
